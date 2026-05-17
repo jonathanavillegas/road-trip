@@ -340,20 +340,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   padding:8px 13px;background:var(--gold);color:#fff;border:none;border-radius:6px;
   font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer
 }
-.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-top:11px}
-.toggle-lbl{font-size:.8rem}
-.tog{position:relative;width:42px;height:22px;flex-shrink:0}
-.tog input{opacity:0;width:0;height:0}
-.tog-sl{
-  position:absolute;inset:0;background:#D1D5DB;border-radius:22px;
-  cursor:pointer;transition:background .2s
+.open-site-btn{
+  display:block;width:100%;margin-top:9px;padding:9px;
+  background:var(--coral);color:#fff;border:none;border-radius:6px;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer
 }
-.tog-sl::after{
-  content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;
-  top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)
+.open-site-btn:hover{opacity:.92}
+.host-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:.68rem;color:var(--green);background:#ECFDF5;
+  border:.5px solid #A7F3D0;border-radius:20px;padding:4px 10px;margin-bottom:10px
 }
-.tog input:checked+.tog-sl{background:var(--green)}
-.tog input:checked+.tog-sl::after{transform:translateX(20px)}
+.share-note{font-size:.78rem;color:var(--muted);line-height:1.45;margin-bottom:10px}
+.share-fine{font-size:.7rem;color:var(--muted);line-height:1.4;margin-top:10px}
+.repo-link{
+  display:inline-block;margin-top:8px;font-size:.72rem;color:var(--coral);
+  text-decoration:none
+}
+.repo-link:hover{text-decoration:underline}
 .export-btns{display:flex;gap:8px;flex-wrap:wrap}
 .exp-btn{
   flex:1;min-width:120px;padding:10px;border:.5px solid var(--border);background:var(--card);
@@ -556,15 +560,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="share-wrap">
     <div class="stats-grid" id="stats-grid"></div>
     <div class="s-card">
-      <div class="s-card-title">Share Your Trip</div>
+      <div class="s-card-title">Trip website</div>
+      <div class="host-badge">Live on GitHub Pages</div>
+      <p class="share-note">Share this link so family and friends can explore the route, schedule, and map. The planner is hosted at <strong>jonathanavillegas.github.io</strong>.</p>
       <div class="link-row">
-        <input class="link-input" id="share-link" readonly value="https://roadtrip.app/t/pgh-la-2026">
+        <input class="link-input" id="share-link" readonly>
         <button class="copy-btn" onclick="copyLink()">Copy</button>
       </div>
-      <div class="toggle-row">
-        <span class="toggle-lbl">Public trip page</span>
-        <label class="tog"><input type="checkbox" id="pub-toggle" onchange="savePrivacy()"><span class="tog-sl"></span></label>
-      </div>
+      <button type="button" class="open-site-btn" onclick="openSite()">Open live website</button>
+      <p class="share-fine">Journal entries and photos stay in each person's browser — visitors get the trip planner, not your private notes.</p>
+      <a class="repo-link" href="https://github.com/jonathanavillegas/road-trip" target="_blank" rel="noopener">View source on GitHub →</a>
     </div>
     <div class="s-card">
       <div class="s-card-title">Export</div>
@@ -1025,7 +1030,6 @@ const ITINERARY = [
 // ═══════════════════════════════════════════════
 let customStops = JSON.parse(localStorage.getItem('rt_custom') || '[]');
 let journal     = JSON.parse(localStorage.getItem('rt_journal') || '{}');
-let isPublic    = localStorage.getItem('rt_public') === 'true';
 
 let map, markers = {}, routeLine, mapReady = false;
 let selectedStopId = null;
@@ -1949,6 +1953,8 @@ function initPhotoUpload() {
 // ═══════════════════════════════════════════════
 // SHARE
 // ═══════════════════════════════════════════════
+const SITE_URL = 'https://jonathanavillegas.github.io/road-trip/';
+
 function renderShare() {
   const grid = document.getElementById('stats-grid');
   if (!grid) return;
@@ -1962,19 +1968,17 @@ function renderShare() {
     {v:photos,                      l:'Photos'},
     {v:entries,                     l:'Journal Entries'},
   ].map(s=>`<div class="stat-card"><div class="stat-val">${s.v}</div><div class="stat-lbl">${s.l}</div></div>`).join('');
-  const tog = document.getElementById('pub-toggle');
-  if (tog) tog.checked = isPublic;
+  const link = document.getElementById('share-link');
+  if (link) link.value = SITE_URL;
 }
 
 function copyLink() {
-  const v = document.getElementById('share-link').value;
+  const v = document.getElementById('share-link').value || SITE_URL;
   navigator.clipboard.writeText(v).then(()=>toast('Link copied!')).catch(()=>toast('Copy failed'));
 }
 
-function savePrivacy() {
-  isPublic = document.getElementById('pub-toggle').checked;
-  localStorage.setItem('rt_public', String(isPublic));
-  toast(isPublic ? 'Trip is now public' : 'Trip is now private');
+function openSite() {
+  window.open(SITE_URL, '_blank', 'noopener');
 }
 
 function exportGMaps() {
@@ -1993,8 +1997,13 @@ function exportPDF() {
 function sendInvite() {
   const em = document.getElementById('invite-email').value.trim();
   if (!em || !em.includes('@')) { toast('Enter a valid email'); return; }
-  toast(`Invite sent to ${em}!`);
+  const subject = encodeURIComponent('Pittsburgh → LA Road Trip Planner');
+  const body = encodeURIComponent(
+    `Hey!\n\nCheck out our road trip planner — route, schedule, and map:\n${SITE_URL}\n\nSee you on the road!`
+  );
+  window.location.href = `mailto:${encodeURIComponent(em)}?subject=${subject}&body=${body}`;
   document.getElementById('invite-email').value = '';
+  toast('Opening your email app…');
 }
 
 // ═══════════════════════════════════════════════
