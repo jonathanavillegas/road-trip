@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pittsburgh → Los Angeles | Road Trip 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --coral:#D85A30;--green:#1D9E75;--gold:#BA7517;--blue:#2563EB;
+  --bg:#FAF7F2;--card:#FFFFFF;--text:#2A1F1A;--muted:#8A7A72;
+  --border:#E8E0D5;--shadow:0 1px 4px rgba(0,0,0,0.08);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── Header ── */
+.app-header{
+  background:linear-gradient(135deg,#2A1F1A 0%,#3D2B1F 100%);
+  color:white;padding:16px 20px 0;position:sticky;top:0;z-index:400
+}
+.header-top{display:flex;align-items:baseline;gap:10px;padding-bottom:12px}
+.header-title{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;letter-spacing:-.01em}
+.header-title .arr{color:var(--coral);margin:0 5px}
+.header-sub{font-size:.72rem;color:rgba(255,255,255,.55)}
+.tab-bar{display:flex;border-top:1px solid rgba(255,255,255,.08)}
+.tab-btn{
+  flex:1;padding:10px 2px;background:none;border:none;border-bottom:2px solid transparent;
+  color:rgba(255,255,255,.45);font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:500;
+  cursor:pointer;transition:color .2s,border-color .2s
+}
+.tab-btn.active{color:#fff;border-bottom-color:var(--coral)}
+
+/* ── Tabs ── */
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* ── Map ── */
+#map-wrap{position:relative;z-index:0}
+#map{height:380px;width:100%}
+.stops-list{padding:14px 16px 80px}
+.sl-title{font-family:'Playfair Display',serif;font-size:.78rem;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px}
+.stop-item{margin-bottom:8px}
+.stop-row{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;
+  background:var(--card);border:.5px solid var(--border);border-radius:8px;
+  cursor:pointer;transition:box-shadow .15s,border-color .15s
+}
+.stop-item.expanded .stop-row{border-radius:8px 8px 0 0;border-bottom-color:transparent}
+.stop-row:hover{box-shadow:var(--shadow)}
+.stop-row.selected{border-color:var(--coral);box-shadow:0 0 0 1px rgba(216,90,48,.35);background:#FEFAF8}
+.stop-journal-inline{
+  padding:12px 14px 14px;background:var(--card);
+  border:.5px solid var(--coral);border-top:none;
+  border-radius:0 0 8px 8px;box-shadow:var(--shadow)
+}
+.stop-journal-inline .j-textarea{min-height:72px}
+.stop-journal-inline .photo-row{margin-bottom:8px}
+.stop-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.stop-row-info{flex:1;min-width:0}
+.stop-row-name{font-size:.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stop-row-date{font-size:.7rem;color:var(--muted)}
+.type-badge{
+  font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+  padding:2px 7px;border-radius:100px;flex-shrink:0
+}
+.tb-origin,.tb-destination{background:#FEF3C7;color:#92400E}
+.tb-city{background:#FEE2E2;color:#991B1B}
+.tb-park{background:#D1FAE5;color:#065F46}
+.tb-rest{background:#F3F4F6;color:#4B5563}
+.tb-custom{background:#EDE9FE;color:#4C1D95}
+
+/* ── Schedule ── */
+.daily-sched{padding:0 0 72px}
+.day-card{
+  margin:12px 16px;background:var(--card);border:.5px solid var(--border);
+  border-radius:12px;overflow:hidden;box-shadow:var(--shadow);
+  transition:box-shadow .35s ease
+}
+.day-card-hdr{
+  padding:12px 14px 10px;border-bottom:.5px solid var(--border);
+  display:grid;grid-template-columns:42px 1fr auto;
+  grid-template-areas:"date title chev" "chips chips chips" "foot foot foot";
+  gap:8px 10px;align-items:start;
+  cursor:pointer;user-select:none;transition:background .15s;width:100%;text-align:left;
+  background:var(--card);border:none;font:inherit;color:inherit
+}
+.day-card-date{grid-area:date}
+.day-card-title-wrap{grid-area:title;min-width:0}
+.day-chevron{
+  grid-area:chev;flex-shrink:0;font-size:.65rem;color:var(--muted);
+  align-self:center;padding:4px;transition:transform .22s
+}
+.day-chips{grid-area:chips;width:auto}
+.day-hdr-foot{grid-area:foot}
+.day-card-hdr:hover{background:#FAF7F2}
+.day-card.day-collapsed .day-card-hdr{border-bottom:none}
+.day-card.day-collapsed .day-chevron{transform:rotate(-90deg)}
+.day-card-body{border-top:.5px solid var(--border)}
+.day-card.day-collapsed .day-card-body{display:none}
+.day-hdr-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.day-sleep-compact{
+  font-size:.72rem;font-weight:600;color:#065F46;
+  display:inline-flex;align-items:center;gap:4px
+}
+.day-card-sub-expanded{
+  font-size:.72rem;color:var(--muted);padding:8px 14px 0;line-height:1.45
+}
+.day-card-date{flex-shrink:0;text-align:center;min-width:42px}
+.day-card-num{font-size:1.2rem;font-weight:700;line-height:1;color:var(--text)}
+.day-card-dow{font-size:.62rem;text-transform:uppercase;color:var(--muted);letter-spacing:.04em;margin-top:2px}
+.day-card-title-wrap{flex:1;min-width:140px}
+.day-card-title{font-size:.9rem;font-weight:600;line-height:1.3}
+.day-card-sub{font-size:.72rem;color:var(--muted);margin-top:2px}
+.day-chips{display:flex;flex-wrap:wrap;gap:5px}
+.day-chip{
+  font-size:.66rem;font-weight:600;padding:3px 8px;border-radius:100px;
+  display:inline-flex;align-items:center;gap:4px
+}
+.chip-drive{background:#EFF6FF;color:#1D4ED8}
+.chip-free{background:#ECFDF5;color:#047857}
+.chip-rest{background:#F3F4F6;color:#4B5563}
+.sleep-banner{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 14px;background:linear-gradient(90deg,#F0FDF4 0%,#FAF7F2 100%);
+  border-bottom:.5px solid var(--border)
+}
+.sleep-banner .sleep-icon{font-size:1.1rem;line-height:1;flex-shrink:0;margin-top:1px}
+.sleep-place{font-size:.82rem;font-weight:600;color:#065F46;line-height:1.35}
+.sleep-note{font-size:.7rem;color:var(--muted);margin-top:2px;line-height:1.4}
+.sleep-continues{font-size:.65rem;font-weight:600;color:#059669;text-transform:uppercase;letter-spacing:.04em}
+.timeline{padding:10px 14px 12px}
+.tl-block{
+  display:grid;grid-template-columns:72px 14px 1fr;gap:0 10px;
+  padding-bottom:12px;position:relative
+}
+.tl-block:last-child{padding-bottom:0}
+.tl-block:not(:last-child)::before{
+  content:'';position:absolute;left:78px;top:18px;bottom:0;width:2px;
+  background:var(--border);transform:translateX(-50%)
+}
+.tl-times{font-size:.68rem;color:var(--muted);text-align:right;padding-top:2px;line-height:1.35}
+.tl-dot{
+  width:12px;height:12px;border-radius:50%;margin-top:3px;position:relative;z-index:1;
+  border:2px solid var(--card);box-shadow:0 0 0 1px var(--border)
+}
+.tl-dot-drive{background:#2563EB}
+.tl-dot-explore{background:#1D9E75}
+.tl-dot-rest{background:#9CA3AF}
+.tl-dot-meal{background:#BA7517}
+.tl-body{min-width:0}
+.tl-label{
+  font-size:.78rem;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap
+}
+.tl-type-tag{
+  font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  padding:1px 5px;border-radius:3px
+}
+.tl-type-drive{background:#DBEAFE;color:#1E40AF}
+.tl-type-explore{background:#D1FAE5;color:#065F46}
+.tl-type-rest{background:#F3F4F6;color:#4B5563}
+.tl-type-meal{background:#FEF3C7;color:#92400E}
+.tl-detail{font-size:.72rem;color:var(--muted);line-height:1.45;margin-bottom:5px}
+.tl-ideas{list-style:none;margin:0;padding:0}
+.tl-ideas li{
+  font-size:.72rem;line-height:1.45;padding:3px 0 3px 14px;position:relative;color:var(--text)
+}
+.tl-ideas li::before{content:'→';position:absolute;left:0;color:var(--coral);font-size:.65rem}
+.sched-wrap{padding-bottom:130px}
+.week-hdr{
+  font-family:'Playfair Display',serif;font-size:.78rem;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.09em;padding:18px 16px 8px;
+  border-bottom:.5px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10
+}
+.day-row{
+  display:flex;align-items:stretch;gap:10px;padding:11px 16px;
+  border-bottom:.5px solid var(--border);transition:background .15s
+}
+.day-row:hover{background:rgba(0,0,0,.015)}
+.day-dt{width:38px;text-align:center;flex-shrink:0;padding-top:2px}
+.day-num{font-size:1.05rem;font-weight:600;line-height:1}
+.day-mon{font-size:.62rem;text-transform:uppercase;color:var(--muted);letter-spacing:.05em}
+.day-bar{width:4px;border-radius:2px;flex-shrink:0;min-height:36px}
+.day-info{flex:1;min-width:0}
+.day-title{font-size:.84rem;font-weight:500;margin-bottom:1px}
+.day-detail{font-size:.73rem;color:var(--muted)}
+.day-miles{
+  font-size:.68rem;font-weight:600;color:var(--coral);
+  background:#FEF2EE;padding:2px 6px;border-radius:4px;align-self:center;flex-shrink:0
+}
+.rm-btn{
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:.75rem;padding:4px;border-radius:4px;align-self:center;transition:color .2s
+}
+.rm-btn:hover{color:#EF4444}
+
+/* ── Add stop panel ── */
+.add-panel{display:none;pointer-events:none}
+.add-panel.show{display:block;pointer-events:auto}
+.add-fab{
+  position:fixed;bottom:16px;right:16px;z-index:301;
+  width:48px;height:48px;border-radius:50%;
+  background:var(--coral);color:#fff;border:none;
+  font-size:1.6rem;font-weight:300;line-height:1;
+  box-shadow:0 3px 12px rgba(216,90,48,.45);
+  cursor:pointer;display:none;align-items:center;justify-content:center;
+  transition:transform .15s,box-shadow .15s
+}
+.add-fab:hover{transform:scale(1.06);box-shadow:0 4px 16px rgba(216,90,48,.5)}
+.add-panel.show.add-collapsed .add-fab{display:flex}
+.add-panel-body{
+  position:fixed;bottom:0;left:0;right:0;z-index:300;
+  background:var(--card);border-top:1px solid var(--border);
+  box-shadow:0 -4px 14px rgba(0,0,0,.09);padding:12px 16px 14px;
+  display:none
+}
+.add-panel.show:not(.add-collapsed) .add-panel-body{display:block}
+.add-panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.add-panel-title{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:600}
+.add-collapse-btn{
+  background:none;border:none;color:var(--muted);font-size:1.25rem;
+  line-height:1;cursor:pointer;padding:4px 6px;border-radius:4px
+}
+.add-collapse-btn:hover{color:var(--text);background:#F3EFE9}
+.add-row{display:flex;gap:7px;flex-wrap:wrap}
+.add-row select,.add-row input[type=text],.add-row input[type=date]{
+  flex:1;min-width:90px;padding:8px 10px;border:.5px solid var(--border);border-radius:6px;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;background:#fff;color:var(--text)
+}
+.add-row input:focus,.add-row select:focus{outline:none;border-color:var(--coral)}
+.add-btn{
+  padding:8px 16px;background:var(--coral);color:#fff;border:none;border-radius:6px;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;white-space:nowrap
+}
+
+/* ── Journal ── */
+.journal-wrap{padding:14px 16px 40px}
+.j-card{
+  background:var(--card);border:.5px solid var(--border);border-radius:10px;
+  padding:15px;margin-bottom:14px;box-shadow:var(--shadow)
+}
+.j-hdr{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.j-icon{
+  width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.85rem;flex-shrink:0
+}
+.j-name{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600}
+.j-date{font-size:.7rem;color:var(--muted)}
+.photo-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.photo-btn{
+  display:flex;align-items:center;gap:5px;padding:5px 11px;
+  border:.5px dashed var(--border);border-radius:6px;background:none;
+  color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.72rem;cursor:pointer;transition:all .2s
+}
+.photo-btn:hover{border-color:var(--coral);color:var(--coral)}
+.photo-gallery{display:flex;flex-wrap:wrap;gap:10px;width:100%;margin-top:4px}
+.photo-item{flex:1 1 140px;max-width:100%;min-width:120px}
+.photo-thumb-wrap{
+  position:relative;width:100%;height:96px;border-radius:6px;
+  overflow:hidden;border:.5px solid var(--border);background:#F3EFE9
+}
+.photo-thumb-img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-rm{
+  position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;
+  border:none;background:rgba(0,0,0,.6);color:#fff;font-size:.85rem;line-height:1;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;
+  z-index:2
+}
+.photo-rm:hover{background:rgba(220,38,38,.9)}
+.photo-delete-link{
+  display:block;width:100%;margin-top:4px;padding:0;background:none;border:none;
+  font-family:'DM Sans',sans-serif;font-size:.66rem;font-weight:500;color:#DC2626;
+  cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:2px
+}
+.photo-delete-link:hover{color:#B91C1C}
+.photo-caption{
+  width:100%;margin-top:5px;padding:5px 7px;border:.5px solid var(--border);border-radius:5px;
+  font-family:'DM Sans',sans-serif;font-size:.7rem;background:#FAFAF8;color:var(--text)
+}
+.photo-caption:focus{outline:none;border-color:var(--coral)}
+.photo-caption::placeholder{color:var(--muted)}
+.photo-count{font-size:.72rem;color:var(--muted)}
+.photo-broken{
+  display:flex;align-items:center;justify-content:center;height:100%;
+  font-size:.65rem;color:var(--muted);text-align:center;padding:4px
+}
+.visually-hidden-file{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0
+}
+.j-entry-display{
+  font-style:italic;font-size:.8rem;line-height:1.65;color:var(--text);
+  padding:8px 0;border-bottom:.5px solid var(--border);margin-bottom:9px
+}
+.j-textarea{
+  width:100%;min-height:78px;padding:9px;border:.5px solid var(--border);border-radius:6px;
+  font-family:'DM Sans',sans-serif;font-size:.8rem;resize:vertical;
+  background:#FAFAF8;color:var(--text);margin-bottom:9px;transition:border-color .2s
+}
+.j-textarea:focus{outline:none;border-color:var(--green)}
+.j-actions{display:flex;gap:7px}
+.j-save{
+  padding:6px 15px;background:var(--green);color:#fff;border:none;border-radius:6px;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer
+}
+.j-edit{
+  padding:6px 15px;background:none;color:var(--green);border:.5px solid var(--green);
+  border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer
+}
+.j-delete{
+  padding:6px 15px;background:none;color:#DC2626;border:.5px solid #FECACA;
+  border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer
+}
+.j-delete:hover{background:#FEF2F2}
+
+/* ── Share ── */
+.share-wrap{padding:14px 16px 40px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px}
+.stat-card{
+  background:var(--card);border:.5px solid var(--border);border-radius:8px;
+  padding:11px 6px;text-align:center;box-shadow:var(--shadow)
+}
+.stat-val{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:var(--coral)}
+.stat-lbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.s-card{
+  background:var(--card);border:.5px solid var(--border);border-radius:10px;
+  padding:15px;margin-bottom:14px;box-shadow:var(--shadow)
+}
+.s-card-title{font-family:'Playfair Display',serif;font-size:.88rem;font-weight:600;margin-bottom:11px}
+.link-row{display:flex;gap:7px}
+.link-input{
+  flex:1;padding:8px 10px;border:.5px solid var(--border);border-radius:6px;
+  font-family:'DM Sans',sans-serif;font-size:.72rem;background:#FAFAF8;color:var(--muted)
+}
+.copy-btn{
+  padding:8px 13px;background:var(--gold);color:#fff;border:none;border-radius:6px;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer
+}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-top:11px}
+.toggle-lbl{font-size:.8rem}
+.tog{position:relative;width:42px;height:22px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{
+  position:absolute;inset:0;background:#D1D5DB;border-radius:22px;
+  cursor:pointer;transition:background .2s
+}
+.tog-sl::after{
+  content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;
+  top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)
+}
+.tog input:checked+.tog-sl{background:var(--green)}
+.tog input:checked+.tog-sl::after{transform:translateX(20px)}
+.export-btns{display:flex;gap:8px;flex-wrap:wrap}
+.exp-btn{
+  flex:1;min-width:120px;padding:10px;border:.5px solid var(--border);background:var(--card);
+  border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;
+  text-align:center;transition:border-color .2s,background .2s
+}
+.exp-btn:hover{border-color:var(--coral);background:#FEF2EE}
+.exp-btn .bi{font-size:1.15rem;display:block;margin-bottom:3px}
+.invite-row{display:flex;gap:7px;margin-top:10px}
+.invite-inp{
+  flex:1;padding:8px 10px;border:.5px solid var(--border);border-radius:6px;
+  font-family:'DM Sans',sans-serif;font-size:.78rem
+}
+.send-btn{
+  padding:8px 13px;background:var(--coral);color:#fff;border:none;border-radius:6px;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer
+}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:#1A1A1A;color:#fff;padding:9px 18px;border-radius:8px;font-size:.78rem;
+  z-index:9999;transition:transform .28s;white-space:nowrap;pointer-events:none
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── Leaflet overrides ── */
+.map-marker-leaflet{background:transparent;border:none}
+.map-pin{
+  transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;
+  width:max-content;max-width:110px
+}
+.map-pin-dot{
+  width:13px;height:13px;border-radius:50%;border:2.5px solid #fff;
+  box-shadow:0 1px 5px rgba(0,0,0,.45);flex-shrink:0
+}
+.map-pin-label{
+  margin-top:3px;padding:2px 6px;border-radius:4px;
+  background:rgba(255,255,255,.94);border:.5px solid #E8E0D5;
+  box-shadow:0 1px 4px rgba(0,0,0,.12);
+  font-family:'DM Sans',sans-serif;font-size:.62rem;font-weight:600;
+  color:#2A1F1A;line-height:1.25;text-align:center;
+  white-space:normal;word-break:break-word;max-width:110px
+}
+.leaflet-popup-content-wrapper{border-radius:8px;font-family:'DM Sans',sans-serif;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.leaflet-popup-content{font-size:.78rem;margin:10px 13px}
+.popup-name{font-family:'Playfair Display',serif;font-size:.92rem;font-weight:600;margin-bottom:2px}
+.popup-date{color:#888;font-size:.72rem;margin-bottom:3px}
+.popup-note{font-size:.72rem;color:#666}
+.popup-journal{font-style:italic;color:#555;font-size:.72rem;border-top:.5px solid #E5E7EB;padding-top:5px;margin-top:5px}
+
+/* ── Itinerary ── */
+#itinerary{padding:0 0 100px}
+.itin-phase{margin-bottom:2px}
+.itin-phase-hdr{
+  font-family:'Playfair Display',serif;font-size:.75rem;font-weight:600;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.09em;
+  padding:14px 16px 10px;border-bottom:.5px solid var(--border);
+  position:sticky;top:0;background:var(--bg);z-index:10;
+  display:flex;align-items:center;gap:8px;
+  cursor:pointer;user-select:none;transition:background .15s
+}
+.itin-phase-hdr:hover{background:#F3EFE9}
+.phase-chevron{margin-left:auto;font-size:.65rem;color:var(--muted);
+  transition:transform .22s;flex-shrink:0;display:inline-block}
+.itin-phase.ph-collapsed .phase-chevron{transform:rotate(-90deg)}
+.itin-phase.ph-collapsed .itin-segment{display:none}
+.phase-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.itin-segment{
+  margin:12px 16px;background:var(--card);border:.5px solid var(--border);
+  border-radius:10px;overflow:hidden;box-shadow:var(--shadow)
+}
+.seg-hdr{
+  padding:11px 13px 10px;border-bottom:.5px solid var(--border);
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:5px
+}
+.seg-label{
+  font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;
+  color:var(--text);flex-shrink:0;margin-right:3px
+}
+.seg-route{font-size:.76rem;color:var(--muted);flex:1;min-width:120px}
+.seg-route .arr{color:var(--coral);margin:0 3px}
+.seg-drive{
+  font-size:.66rem;font-weight:600;color:var(--coral);
+  background:#FEF2EE;padding:2px 7px;border-radius:100px;flex-shrink:0;white-space:nowrap
+}
+.seg-body{padding:11px 13px}
+.seg-activities{list-style:none;margin-bottom:10px}
+.seg-activity{
+  display:flex;gap:8px;align-items:flex-start;
+  font-size:.77rem;line-height:1.55;padding:4px 0;
+  border-bottom:.5px solid var(--border)
+}
+.seg-activity:last-child{border-bottom:none}
+.act-icon{flex-shrink:0;width:18px;text-align:center;margin-top:1px}
+.act-text{color:var(--text)}
+.seg-stay{
+  display:flex;align-items:flex-start;gap:8px;font-size:.74rem;font-weight:500;
+  color:var(--green);padding:9px 12px;background:#F0FDF4;border-radius:6px;margin-bottom:7px;
+  border:.5px solid #BBF7D0;line-height:1.45
+}
+.seg-stay strong{font-weight:700}
+.seg-heat{
+  font-size:.71rem;line-height:1.55;color:#92400E;
+  padding:8px 10px;background:#FEF3C7;border-radius:6px;
+  border-left:3px solid #F59E0B;margin-bottom:7px
+}
+.seg-tip{
+  font-size:.71rem;font-style:italic;color:var(--muted);
+  padding:6px 10px;background:var(--bg);border-radius:6px
+}
+
+/* ── Calendar ── */
+.cal-section{padding:14px 16px 0}
+.cal-month{margin-bottom:18px}
+.cal-month-title{
+  font-family:'Playfair Display',serif;font-size:.88rem;font-weight:600;
+  color:var(--text);margin-bottom:8px
+}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{
+  text-align:center;font-size:.58rem;font-weight:600;text-transform:uppercase;
+  color:var(--muted);padding:3px 0;letter-spacing:.04em
+}
+.cal-day{
+  min-height:62px;border-radius:5px;padding:4px 3px 8px;
+  background:var(--card);border:.5px solid var(--border);
+  position:relative;overflow:hidden;cursor:default
+}
+.cal-day.cal-empty{background:transparent;border-color:transparent}
+.cal-day.cal-pre{opacity:.35}
+.cal-day.cal-has{cursor:pointer;transition:box-shadow .15s,transform .1s}
+.cal-day.cal-has:hover{box-shadow:0 2px 8px rgba(0,0,0,.14);transform:translateY(-1px)}
+.cal-num{font-size:.72rem;font-weight:600;color:var(--text);display:block;line-height:1.2}
+.cal-lbl{
+  font-size:.54rem;font-weight:600;color:var(--text);display:block;
+  line-height:1.25;margin-top:2px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+.cal-sub{
+  font-size:.48rem;color:var(--muted);display:block;line-height:1.3;margin-top:1px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+.cal-bar{position:absolute;bottom:0;left:0;right:0;height:3px}
+.cal-legend{
+  display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:10px;padding:8px 10px;
+  background:var(--card);border:.5px solid var(--border);border-radius:8px
+}
+.cal-legend-item{font-size:.62rem;color:var(--muted);display:flex;align-items:center;gap:5px}
+.cal-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.itin-divider{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 16px 0;font-size:.65rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.09em;color:var(--muted)
+}
+.itin-divider::after{content:'';flex:1;height:.5px;background:var(--border)}
+
+/* ── Responsive ── */
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .header-title{font-size:1.1rem}
+  #map{height:320px}
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="header-top">
+    <div class="header-title">Pittsburgh<span class="arr">→</span>Los Angeles</div>
+    <div class="header-sub" id="hdr-sub">Loading…</div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="map" onclick="switchTab('map')">🗺 Map & Journal</button>
+    <button class="tab-btn" data-tab="schedule" onclick="switchTab('schedule')">📅 Schedule</button>
+    <button class="tab-btn" data-tab="share" onclick="switchTab('share')">🔗 Share</button>
+  </div>
+</div>
+
+<!-- MAP TAB -->
+<div id="tab-map" class="tab-pane active">
+  <div id="map-wrap"><div id="map" style="height:380px;width:100%"></div></div>
+  <div class="stops-list">
+    <div class="sl-title">All Stops — tap for journal</div>
+    <div id="stops-list"></div>
+  </div>
+</div>
+
+<!-- SCHEDULE TAB -->
+<div id="tab-schedule" class="tab-pane">
+  <div id="cal-section" class="cal-section"></div>
+  <div class="itin-divider">Your Day at a Glance</div>
+  <div id="daily-schedule" class="daily-sched"></div>
+  <div class="itin-divider">Trip Phases (expand for tips)</div>
+  <section id="itinerary"><div id="itinerary-content"></div></section>
+</div>
+
+<!-- SHARE TAB -->
+<div id="tab-share" class="tab-pane">
+  <div class="share-wrap">
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="s-card">
+      <div class="s-card-title">Share Your Trip</div>
+      <div class="link-row">
+        <input class="link-input" id="share-link" readonly value="https://roadtrip.app/t/pgh-la-2026">
+        <button class="copy-btn" onclick="copyLink()">Copy</button>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-lbl">Public trip page</span>
+        <label class="tog"><input type="checkbox" id="pub-toggle" onchange="savePrivacy()"><span class="tog-sl"></span></label>
+      </div>
+    </div>
+    <div class="s-card">
+      <div class="s-card-title">Export</div>
+      <div class="export-btns">
+        <button class="exp-btn" onclick="exportGMaps()"><span class="bi">🗺️</span>Google Maps Route</button>
+        <button class="exp-btn" onclick="exportPDF()"><span class="bi">📄</span>PDF Keepsake</button>
+      </div>
+    </div>
+    <div class="s-card">
+      <div class="s-card-title">Invite Family &amp; Friends</div>
+      <div class="invite-row">
+        <input class="invite-inp" type="email" id="invite-email" placeholder="Email address…">
+        <button class="send-btn" onclick="sendInvite()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD STOP PANEL (shown over schedule tab) -->
+<div class="add-panel add-collapsed" id="add-panel">
+  <button type="button" class="add-fab" onclick="toggleAddPanel()" aria-label="Add custom stop" title="Add custom stop">+</button>
+  <div class="add-panel-body">
+    <div class="add-panel-hdr">
+      <div class="add-panel-title">Add a Custom Stop</div>
+      <button type="button" class="add-collapse-btn" onclick="toggleAddPanel()" aria-label="Collapse">−</button>
+    </div>
+    <div class="add-row">
+      <select id="ns-type">
+        <option value="city">City</option>
+        <option value="park">Park</option>
+        <option value="rest">Rest Day</option>
+      </select>
+      <input type="text" id="ns-name" placeholder="Stop name…">
+      <input type="date" id="ns-date" min="2026-07-12" max="2026-08-04">
+      <button class="add-btn" onclick="addStop()">Add</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="photo-file-input" class="visually-hidden-file" accept="image/*,.heic,.heif" multiple>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+const BASE = [
+  {id:'pittsburgh',  name:'Pittsburgh, PA',                lat:40.4406,  lng:-79.9959,  type:'origin',      date:'2026-07-12', miles:0,   note:'Journey begins — pack the car!'},
+  {id:'nrg',         name:'New River Gorge, WV',           lat:37.8731,  lng:-80.8550,  type:'park',        date:'2026-07-12', miles:180, note:'Sandstone Falls + Grandview Overlook'},
+  {id:'ozarks',      name:'Ozark Scenic Riverways, MO',    lat:36.9934,  lng:-91.0137,  type:'park',        date:'2026-07-14', miles:480, note:'Float the crystal-clear Current River'},
+  {id:'kansascity',  name:'Kansas City, MO',               lat:39.0997,  lng:-94.5786,  type:'city',        date:'2026-07-16', miles:160, note:'World-class BBQ + rest day'},
+  {id:'denver',      name:'Denver, CO',                    lat:39.7392,  lng:-104.9903, type:'city',        date:'2026-07-17', miles:600, note:'Gateway to the Rockies'},
+  {id:'rmnp',        name:'Rocky Mountain NP, CO',         lat:40.3428,  lng:-105.6836, type:'park',        date:'2026-07-19', miles:80,  note:'Trail Ridge Road + Emerald Lake'},
+  {id:'moab',        name:'Moab, UT',                      lat:38.5733,  lng:-109.5498, type:'city',        date:'2026-07-21', miles:350, note:'Base camp for Utah parks'},
+  {id:'arches',      name:'Arches National Park, UT',      lat:38.7331,  lng:-109.5925, type:'park',        date:'2026-07-22', miles:15,  note:'Delicate Arch + Devils Garden'},
+  {id:'canyonlands', name:'Canyonlands National Park, UT', lat:38.2505,  lng:-109.8208, type:'park',        date:'2026-07-23', miles:25,  note:'Mesa Arch sunrise + Dead Horse Point'},
+  {id:'grandcanyon', name:'Grand Canyon, AZ',              lat:36.0544,  lng:-112.1401, type:'park',        date:'2026-07-24', miles:265, note:'South Rim — stay on the rim in July'},
+  {id:'zion',        name:'Zion National Park, UT',        lat:37.2982,  lng:-113.0263, type:'park',        date:'2026-07-26', miles:165, note:"Angels Landing + The Narrows"},
+  {id:'lasvegas',    name:'Las Vegas, NV',                 lat:36.1699,  lng:-115.1398, type:'city',        date:'2026-07-28', miles:160, note:'Pit stop: AC, food, Valley of Fire'},
+  {id:'joshuatree',  name:'Joshua Tree NP, CA',            lat:33.8734,  lng:-115.9010, type:'park',        date:'2026-07-29', miles:205, note:'Skull Rock + legendary dark-sky stargazing'},
+  {id:'losangeles',  name:'Los Angeles, CA',               lat:34.0522,  lng:-118.2437, type:'destination', date:'2026-07-31', miles:130, note:'New home!'},
+];
+
+const SCHED = [
+  {date:'2026-07-12',type:'drive',    title:'Depart Pittsburgh',              detail:'Drive to New River Gorge, WV',                      miles:180, sid:'pittsburgh'},
+  {date:'2026-07-13',type:'park',     title:'New River Gorge',                detail:'Grandview Rim, Sandstone Falls, Long Point Trail',   miles:0,   sid:'nrg'},
+  {date:'2026-07-14',type:'drive',    title:'New River Gorge → Ozarks',       detail:'Long day through Appalachia into Missouri',          miles:480, sid:'nrg'},
+  {date:'2026-07-15',type:'park',     title:'Ozark Scenic Riverways',         detail:'Float the Current River — swim Jack\'s Fork',        miles:0,   sid:'ozarks'},
+  {date:'2026-07-16',type:'drive',    title:'Ozarks → Kansas City',           detail:'Short hop to KC for BBQ and rest',                   miles:160, sid:'ozarks'},
+  {date:'2026-07-17',type:'drive',    title:'Kansas City → Denver',           detail:'Long push across the Great Plains',                  miles:600, sid:'kansascity'},
+  {date:'2026-07-18',type:'city',     title:'Denver',                         detail:'Mile High City — rest and resupply',                 miles:0,   sid:'denver'},
+  {date:'2026-07-19',type:'drive',    title:'Denver → Rocky Mountain NP',     detail:'Drive up to Estes Park, Trail Ridge Road',           miles:80,  sid:'denver'},
+  {date:'2026-07-20',type:'park',     title:'Rocky Mountain NP Day 2',        detail:'Emerald Lake, Sky Pond, Bear Lake loop',             miles:0,   sid:'rmnp'},
+  {date:'2026-07-21',type:'drive',    title:'RMNP → Moab, UT',                detail:'Cross into Utah — canyon country begins',            miles:350, sid:'rmnp'},
+  {date:'2026-07-22',type:'park',     title:'Arches National Park',           detail:'Delicate Arch, Devils Garden, Landscape Arch',       miles:15,  sid:'arches'},
+  {date:'2026-07-23',type:'park',     title:'Canyonlands + Dead Horse Point', detail:'Mesa Arch sunrise, Island in the Sky',               miles:25,  sid:'canyonlands'},
+  {date:'2026-07-24',type:'drive',    title:'Moab → Grand Canyon',            detail:'Drive south through Navajo Nation to the South Rim', miles:265, sid:'moab'},
+  {date:'2026-07-25',type:'park',     title:'Grand Canyon Day 2',             detail:'Rim Trail, Desert View Watchtower, Yavapai sunset',  miles:0,   sid:'grandcanyon'},
+  {date:'2026-07-26',type:'drive',    title:'Grand Canyon → Zion',            detail:'Drive north through Utah canyon country',            miles:165, sid:'grandcanyon'},
+  {date:'2026-07-27',type:'park',     title:'Zion Day 2',                     detail:'Angels Landing + The Narrows slot canyon swim',      miles:0,   sid:'zion'},
+  {date:'2026-07-28',type:'drive',    title:'Zion → Las Vegas',               detail:'Short desert drive into Nevada',                    miles:160, sid:'zion'},
+  {date:'2026-07-29',type:'drive',    title:'Las Vegas → Joshua Tree',        detail:'Into the Mojave Desert',                            miles:205, sid:'lasvegas'},
+  {date:'2026-07-30',type:'park',     title:'Joshua Tree Day 2',              detail:'Arch Rock + dark-sky stargazing',                    miles:0,   sid:'joshuatree'},
+  {date:'2026-07-31',type:'drive',    title:'Joshua Tree → Los Angeles',      detail:'Final leg — welcome home!',                         miles:130, sid:'joshuatree'},
+];
+
+// Per-day timeline: driving blocks, free time ideas, and where you sleep
+const DAILY_PLANS = {
+  '2026-07-12':{
+    title:'Depart Pittsburgh → New River Gorge',
+    sleep:{place:'Fayetteville, WV',note:'Near the gorge — cabins, B&B, or lodge'},
+    blocks:[
+      {type:'drive',start:'7:00 AM',end:'10:30 AM',label:'Drive to New River Gorge',detail:'~180 mi · I-79 S into WV canyon country'},
+      {type:'meal',start:'11:00 AM',end:'12:00 PM',label:'Lunch near the gorge'},
+      {type:'explore',start:'12:30 PM',end:'6:30 PM',label:'Afternoon on the rim & river',ideas:['Long Point Trail — 3.2 mi rim walk','Grandview Rim Trail — classic panorama','Sandstone Falls — swim and rock slides','Hawks Nest overlook if you have energy']},
+      {type:'rest',start:'7:00 PM',end:'9:30 PM',label:'Check in & wind down',ideas:['Early night — big driving days ahead']}
+    ]
+  },
+  '2026-07-13':{
+    title:'New River Gorge — full park day',
+    sleep:{place:'Fayetteville, WV',note:'Same spot — night 2 of 2',continues:true},
+    blocks:[
+      {type:'explore',start:'8:00 AM',end:'12:30 PM',label:'Morning hikes (cooler hours)',ideas:['Finish any trails you skipped yesterday','Kayak or raft on the New River (half-day trips available)','Bridge Walk under the New River Gorge Bridge']},
+      {type:'meal',start:'12:30 PM',end:'1:30 PM',label:'Lunch in Fayetteville'},
+      {type:'explore',start:'2:00 PM',end:'5:30 PM',label:'Afternoon free time',ideas:['Cathedral Falls — short waterfall stop','Local coffee shop or brewery','Pack and prep for tomorrow’s long drive']},
+      {type:'rest',start:'6:00 PM',end:'9:00 PM',label:'Easy evening',ideas:['Laundry, groceries, fill the gas tank']}
+    ]
+  },
+  '2026-07-14':{
+    title:'Drive New River Gorge → Ozarks',
+    sleep:{place:'Van Buren, MO',note:'Current River area — campground or riverside lodge'},
+    blocks:[
+      {type:'drive',start:'6:30 AM',end:'3:30 PM',label:'Long drive into Missouri',detail:'~480 mi · Appalachians to Ozark hills — breaks every 2 hrs'},
+      {type:'meal',start:'12:00 PM',end:'1:00 PM',label:'Lunch break (pick a town on I-64 / I-44)'},
+      {type:'explore',start:'4:00 PM',end:'6:30 PM',label:'Arrive & stretch by the river',ideas:['Scout canoe rental spots for tomorrow','Short walk along the Current River if light remains']},
+      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Settle in near the river'}
+    ]
+  },
+  '2026-07-15':{
+    title:'Ozark Scenic Riverways — river day',
+    sleep:{place:'Van Buren, MO',note:'Same area — night 2 of 2',continues:true},
+    blocks:[
+      {type:'explore',start:'8:00 AM',end:'12:00 PM',label:'Morning on the water',ideas:['Float or tube the Current River ($15–25 rentals in Van Buren)','Jack\'s Fork River — quieter stretch','Big Spring — 286 million gallons/day']},
+      {type:'meal',start:'12:00 PM',end:'1:00 PM',label:'Riverside lunch'},
+      {type:'explore',start:'1:30 PM',end:'5:30 PM',label:'Afternoon swim & explore',ideas:['River swimming — water stays ~60°F year-round','Riverside picnic','Short hike along the bluffs']},
+      {type:'rest',start:'6:00 PM',end:'9:00 PM',label:'Campfire or quiet evening',ideas:['Pack cooler for tomorrow’s drive to KC']}
+    ]
+  },
+  '2026-07-16':{
+    title:'Ozarks → Kansas City',
+    sleep:{place:'Kansas City, MO',note:'Hotel downtown or near Country Club Plaza — AC and laundry'},
+    blocks:[
+      {type:'drive',start:'8:00 AM',end:'10:30 AM',label:'Short hop to Kansas City',detail:'~160 mi · easy morning drive'},
+      {type:'explore',start:'11:00 AM',end:'2:00 PM',label:'Check in & explore',ideas:['Drop bags, shower, change clothes','Quick walk through a neighborhood you want to see']},
+      {type:'meal',start:'12:30 PM',end:'2:00 PM',label:'BBQ lunch',ideas:['Joe\'s KC (47th St) — Z-Man sandwich & burnt ends','Gates or Arthur Bryant\'s for classic KC style']},
+      {type:'rest',start:'2:30 PM',end:'6:00 PM',label:'Rest day afternoon',ideas:['Hotel AC, nap, laundry','Grocery run for the Denver push tomorrow']},
+      {type:'explore',start:'7:00 PM',end:'9:30 PM',label:'Optional evening out',ideas:['18th & Vine Jazz District if you have energy','Country Club Plaza stroll']}
+    ]
+  },
+  '2026-07-17':{
+    title:'Kansas City → Denver',
+    sleep:{place:'Denver, CO',note:'Hotel near RiNo or downtown — resupply before the mountains'},
+    blocks:[
+      {type:'drive',start:'6:00 AM',end:'2:30 PM',label:'Great Plains crossing',detail:'~600 mi · leave early; optional break in Salina, KS (~4 hrs from KC)'},
+      {type:'meal',start:'12:00 PM',end:'1:00 PM',label:'Road lunch (pack snacks + stop once)'},
+      {type:'explore',start:'3:30 PM',end:'6:00 PM',label:'Denver arrival',ideas:['Watch the Rockies appear on the horizon','RiNo District for dinner and a walk']},
+      {type:'rest',start:'7:00 PM',end:'9:30 PM',label:'Rest before altitude',ideas:['Hydrate — you’re at 5,280 ft','Lay out gear for Rocky Mountain NP']}
+    ]
+  },
+  '2026-07-18':{
+    title:'Denver — rest & resupply',
+    sleep:{place:'Denver, CO',note:'Same hotel — night 2 of 2',continues:true},
+    blocks:[
+      {type:'rest',start:'9:00 AM',end:'12:00 PM',label:'Slow morning',ideas:['Sleep in, coffee, laundry','REI or outdoor store if you need gear']},
+      {type:'explore',start:'12:30 PM',end:'4:30 PM',label:'Light Denver exploring',ideas:['Red Rocks Amphitheatre (short visit)','Washington Park walk','Union Station food hall']},
+      {type:'meal',start:'5:00 PM',end:'6:30 PM',label:'Dinner'},
+      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Pack for Estes Park tomorrow',ideas:['Confirm timed-entry permit for RMNP on recreation.gov']}
+    ]
+  },
+  '2026-07-19':{
+    title:'Denver → Rocky Mountain NP',
+    sleep:{place:'Estes Park, CO',note:'Gateway town to RMNP — book 2 nights'},
+    blocks:[
+      {type:'drive',start:'8:00 AM',end:'9:30 AM',label:'Drive to Estes Park',detail:'~80 mi · short hop up into the Rockies'},
+      {type:'drive',start:'10:00 AM',end:'1:00 PM',label:'Trail Ridge Road scenic drive',detail:'Highest continuous paved road in the US (12,183 ft) — go slow, enjoy views'},
+      {type:'meal',start:'1:00 PM',end:'2:00 PM',label:'Lunch in Estes Park'},
+      {type:'explore',start:'2:30 PM',end:'6:00 PM',label:'Afternoon hike',ideas:['Bear Lake Loop — easy 0.9 mi wildflowers','Emerald Lake Trail start if you have energy (3.6 mi)','Elk spotting near Kawuneeche Valley']},
+      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Estes Park evening',ideas:['Dinner in town, early night for altitude']}
+    ]
+  },
+  '2026-07-20':{
+    title:'Rocky Mountain NP — full day',
+    sleep:{place:'Estes Park, CO',note:'Same lodging — night 2 of 2',continues:true},
+    blocks:[
+      {type:'explore',start:'6:30 AM',end:'12:30 PM',label:'Morning alpine hikes',ideas:['Emerald Lake Trail — 3.6 mi, three stacked lakes','Sky Pond via Glacier Gorge — 8.8 mi if you’re up for it','Alpine lakes are cold but stunning — bring layers']},
+      {type:'meal',start:'12:30 PM',end:'1:30 PM',label:'Lunch'},
+      {type:'explore',start:'2:00 PM',end:'5:00 PM',label:'Afternoon free time',ideas:['Finish a trail you skipped','Estes Park shopping or coffee','Scenic pullouts you missed on Trail Ridge']},
+      {type:'rest',start:'6:00 PM',end:'9:00 PM',label:'Pack for Moab',ideas:['Long drive tomorrow — prep snacks and water']}
+    ]
+  },
+  '2026-07-21':{
+    title:'Rocky Mountain NP → Moab',
+    sleep:{place:'Moab, UT',note:'Base camp for Arches & Canyonlands — book 3 nights'},
+    blocks:[
+      {type:'drive',start:'7:00 AM',end:'12:30 PM',label:'Drive to Moab',detail:'~350 mi · I-70 W through Colorado'},
+      {type:'explore',start:'11:00 AM',end:'11:45 AM',label:'Optional detour',ideas:['Colorado National Monument — 20 min off I-70, canyon overlooks']},
+      {type:'meal',start:'1:00 PM',end:'2:00 PM',label:'Lunch near Moab'},
+      {type:'explore',start:'3:00 PM',end:'6:30 PM',label:'Afternoon cooldown',ideas:['Colorado River at Hittle Bottom — swim & rope swings','Watch canyon walls turn orange at sunset']},
+      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Moab evening',ideas:['Dinner on Main St — early night; hike at dawn tomorrow']}
+    ]
+  },
+  '2026-07-22':{
+    title:'Arches National Park',
+    sleep:{place:'Moab, UT',note:'Same hotel — night 2 of 3',continues:true},
+    blocks:[
+      {type:'explore',start:'5:30 AM',end:'10:30 AM',label:'Sunrise hikes (beat the heat)',ideas:['Delicate Arch — 3 mi, start before 7am','Landscape Arch — 1.9 mi, longest arch in North America','Fiery Furnace viewpoint at golden hour']},
+      {type:'rest',start:'11:00 AM',end:'3:00 PM',label:'Midday heat break',detail:'July: 100–108°F — stay in AC, hydrate',ideas:['Moab coffee shop or pool','3+ liters water for the afternoon']},
+      {type:'explore',start:'4:00 PM',end:'7:30 PM',label:'Late-afternoon hike',ideas:['Devils Garden Trail — 7.8 mi loop, most arches in one hike','Lions Park — cool off in the Colorado River']},
+      {type:'rest',start:'8:00 PM',end:'9:30 PM',label:'Early night'}
+    ]
+  },
+  '2026-07-23':{
+    title:'Canyonlands & Dead Horse Point',
+    sleep:{place:'Moab, UT',note:'Same hotel — night 3 of 3',continues:true},
+    blocks:[
+      {type:'explore',start:'5:00 AM',end:'9:30 AM',label:'Sunrise loop',ideas:['Mesa Arch — 0.5 mi, arrive before sunrise for the glow','Grand View Point — 2 mi dramatic overlook','Dead Horse Point — Colorado River horseshoe view']},
+      {type:'rest',start:'10:00 AM',end:'2:00 PM',label:'Heat break & lunch',detail:'All Canyonlands hiking done before 9am'},
+      {type:'explore',start:'3:00 PM',end:'6:00 PM',label:'Afternoon free time in Moab',ideas:['River swim at Lions Park','Gear shop, ice cream on Main St','Pack for Grand Canyon drive tomorrow']},
+      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Last Moab night'}
+    ]
+  },
+  '2026-07-24':{
+    title:'Moab → Grand Canyon South Rim',
+    sleep:{place:'Grand Canyon Village or Tusayan, AZ',note:'On the rim or 7 mi south in Tusayan — book 2 nights'},
+    blocks:[
+      {type:'drive',start:'7:00 AM',end:'11:00 AM',label:'Drive to the South Rim',detail:'~265 mi · through Navajo Nation — fill gas when you can'},
+      {type:'meal',start:'11:30 AM',end:'12:30 PM',label:'Lunch at the rim'},
+      {type:'explore',start:'1:00 PM',end:'6:00 PM',label:'First look at the canyon',ideas:['Mather Point — iconic first view','Rim Trail — flat, walk any section you want','Yavapai Point for sunset']},
+      {type:'rest',start:'7:30 PM',end:'9:00 PM',label:'Rim evening',ideas:['Don’t descend far in July heat — rim views are enough']}
+    ]
+  },
+  '2026-07-25':{
+    title:'Grand Canyon — full rim day',
+    sleep:{place:'Grand Canyon Village or Tusayan, AZ',note:'Same lodging — night 2 of 2',continues:true},
+    blocks:[
+      {type:'explore',start:'6:00 AM',end:'11:00 AM',label:'Morning rim hikes',ideas:['Bright Angel to 1.5 Mile Resthouse only — 3 mi, morning only','Rim Trail east toward Yaki Point','Desert View Drive — 25 mi, Navajo Watchtower']},
+      {type:'meal',start:'11:30 AM',end:'12:30 PM',label:'Lunch'},
+      {type:'rest',start:'12:30 PM',end:'3:00 PM',label:'Midday rest',detail:'Rim is 7,000 ft — manageable, but avoid inner canyon (110°F+)'},
+      {type:'explore',start:'4:00 PM',end:'7:30 PM',label:'Afternoon & sunset',ideas:['Hopi Point or Powell Point for sunset','Visitor center exhibits','Pack for Zion tomorrow']}
+    ]
+  },
+  '2026-07-26':{
+    title:'Grand Canyon → Zion',
+    sleep:{place:'Springdale, UT',note:'At Zion’s front door — book 2 nights'},
+    blocks:[
+      {type:'drive',start:'8:00 AM',end:'10:30 AM',label:'Drive to Zion',detail:'~165 mi · Utah canyon country'},
+      {type:'explore',start:'11:00 AM',end:'1:00 PM',label:'First canyon views',ideas:['Canyon Overlook Trail — 1 mi arch-framed view','Shuttle into the canyon if running']},
+      {type:'meal',start:'1:00 PM',end:'2:00 PM',label:'Lunch in Springdale'},
+      {type:'explore',start:'2:30 PM',end:'6:30 PM',label:'Afternoon hike',ideas:['Emerald Pools — shaded 1.3–3 mi','River walk in the canyon bottom','Scout Angels Landing permit for tomorrow']},
+      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Springdale evening'}
+    ]
+  },
+  '2026-07-27':{
+    title:'Zion — big hike day',
+    sleep:{place:'Springdale, UT',note:'Same lodging — night 2 of 2',continues:true},
+    blocks:[
+      {type:'explore',start:'6:00 AM',end:'11:30 AM',label:'Morning adventure',ideas:['Angels Landing — 5.4 mi, permit required, chain section','Or Emerald Pools if no permit']},
+      {type:'meal',start:'12:00 PM',end:'1:00 PM',label:'Lunch'},
+      {type:'explore',start:'1:30 PM',end:'5:30 PM',label:'The Narrows (best when hottest)',ideas:['Bottom-up Narrows — wade the Virgin River through the slot canyon','Rent shoes and dry bag in Springdale','Virgin River cooldown anywhere in the canyon']},
+      {type:'rest',start:'6:00 PM',end:'9:00 PM',label:'Recover & pack for Vegas'}
+    ]
+  },
+  '2026-07-28':{
+    title:'Zion → Las Vegas',
+    sleep:{place:'Las Vegas, NV',note:'Strip or off-Strip hotel — one night of AC and comfort'},
+    blocks:[
+      {type:'drive',start:'8:00 AM',end:'10:30 AM',label:'Drive to Las Vegas',detail:'~160 mi'},
+      {type:'explore',start:'9:00 AM',end:'10:30 AM',label:'Optional morning detour',ideas:['Valley of Fire State Park — 50 min off route, red rock at dawn']},
+      {type:'explore',start:'11:00 AM',end:'3:00 PM',label:'Vegas pit stop',ideas:['Lake Mead swim at Boulder Beach if levels allow','Restock water, sunscreen, snacks']},
+      {type:'rest',start:'3:00 PM',end:'6:00 PM',label:'Hotel downtime',ideas:['Pool, nap, shower — you’ve earned it']},
+      {type:'explore',start:'7:00 PM',end:'10:00 PM',label:'One night of city',ideas:['Great meal anywhere on the Strip','A show or walk through the lights if you want — one night is enough']}
+    ]
+  },
+  '2026-07-29':{
+    title:'Las Vegas → Joshua Tree',
+    sleep:{place:'Twentynine Palms or Yucca Valley, CA',note:'Near park entrance — dark skies tonight'},
+    blocks:[
+      {type:'drive',start:'8:00 AM',end:'11:30 AM',label:'Drive to Joshua Tree',detail:'~205 mi · Mojave Desert'},
+      {type:'rest',start:'11:30 AM',end:'3:00 PM',label:'Midday heat shelter',detail:'110°F+ — stay inside until late afternoon'},
+      {type:'explore',start:'4:30 PM',end:'7:30 PM',label:'Dusk exploration',ideas:['Skull Rock Nature Trail — 1.7 mi boulders','Arch Rock in late-afternoon light','Cholla Cactus Garden at magic hour']},
+      {type:'explore',start:'8:30 PM',end:'11:00 PM',label:'Stargazing',ideas:['Milky Way — one of SoCal’s best dark-sky parks','Bring 5+ liters water per person — no water in park']}
+    ]
+  },
+  '2026-07-30':{
+    title:'Joshua Tree — day 2',
+    sleep:{place:'Twentynine Palms or Yucca Valley, CA',note:'Same area — night 2 of 2',continues:true},
+    blocks:[
+      {type:'explore',start:'5:00 AM',end:'8:30 AM',label:'Sunrise hike',ideas:['Ryan Mountain — 3 mi, start before 5:30am for pink light','Hidden Valley — easy 1 mi loop']},
+      {type:'rest',start:'9:00 AM',end:'3:00 PM',label:'Beat the heat',ideas:['Breakfast, nap, pack the car','Check out if needed']},
+      {type:'explore',start:'3:30 PM',end:'6:00 PM',label:'Last desert sights',ideas:['Any trails you missed','Joshua trees at golden hour']},
+      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Prep for LA tomorrow',ideas:['Final grocery stop, gas up']}
+    ]
+  },
+  '2026-07-31':{
+    title:'Joshua Tree → Los Angeles — home!',
+    sleep:{place:'Los Angeles, CA',note:'Your new home — you made it!'},
+    blocks:[
+      {type:'explore',start:'5:30 AM',end:'8:00 AM',label:'Optional last sunrise',ideas:['One more short trail if you’re up early']},
+      {type:'drive',start:'8:30 AM',end:'11:00 AM',label:'Drive to Los Angeles',detail:'~130 mi · final leg'},
+      {type:'explore',start:'11:00 AM',end:'1:00 PM',label:'Optional scenic detour',ideas:['Palms to Pines Scenic Byway through San Bernardino Mountains']},
+      {type:'explore',start:'1:30 PM',end:'4:00 PM',label:'Pacific celebration',ideas:['Malibu or Santa Monica — dip in the ocean after 3 weeks of desert','You did Pittsburgh → LA the long way']},
+      {type:'rest',start:'5:00 PM',end:'9:00 PM',label:'Arrive & settle in',ideas:['Unpack the car, first night in your new city']}
+    ]
+  },
+};
+
+const WEEKS = [
+  {label:'Phase 1 — Appalachia',         start:'2026-07-12', end:'2026-07-13'},
+  {label:'Phase 2 — Midwest Transition', start:'2026-07-14', end:'2026-07-16'},
+  {label:'Phase 3 — The Rockies',        start:'2026-07-17', end:'2026-07-20'},
+  {label:'Phase 4 — Utah Parks Cluster', start:'2026-07-21', end:'2026-07-23'},
+  {label:'Phase 5 — Arizona & Zion',     start:'2026-07-24', end:'2026-07-27'},
+  {label:'Phase 6 — Desert Finale',      start:'2026-07-28', end:'2026-07-31'},
+];
+
+const ITINERARY = [
+  {id:'appalachia', label:'Phase 1 — Appalachia', color:'#2D6A4F', segments:[
+    {label:'Day 1', from:'Pittsburgh, PA', to:'New River Gorge, WV', drive:'3.5 hrs · 180 mi', date:'2026-07-12',
+      activities:[
+        {icon:'🥾', text:'Long Point Trail — 3.2 mi, sheer cliff canyon rim walk with no crowds'},
+        {icon:'🥾', text:'Grandview Rim Trail — sweeping gorge panorama'},
+        {icon:'🏊', text:'Sandstone Falls — natural rock slides and river swimming'},
+        {icon:'👁️', text:'Hawks Nest State Park overlook on the way out'},
+      ],
+      stay:'Fayetteville, WV', heat:null,
+      tip:'Far less crowded than western parks — you may have trails to yourself.'
+    },
+  ]},
+  {id:'midwest', label:'Phase 2 — Midwest Transition', color:'#B45309', segments:[
+    {label:'Days 2–3', from:'New River Gorge, WV', to:'Ozark NSR, MO', drive:'8+ hrs · 480 mi (split over 2 days)', date:'2026-07-13',
+      activities:[
+        {icon:'🏊', text:'Current River — crystal-clear 60°F spring-fed water, best river swimming in the Midwest'},
+        {icon:'🚣', text:'Jack\'s Fork River — rent a canoe or inner tube in Van Buren ($15–25)'},
+        {icon:'💧', text:'Big Spring — one of the largest springs in the US, 286 million gallons per day'},
+        {icon:'🏕️', text:'Riverside camping along the Current River'},
+      ],
+      stay:'Van Buren, MO (Current River campgrounds)', heat:null,
+      tip:'The water stays 60°F year-round regardless of air temp. Bring a layer for after swimming.'
+    },
+    {label:'Day 4', from:'Ozarks, MO', to:'Kansas City, MO', drive:'2.5 hrs · 160 mi', date:'2026-07-16',
+      activities:[
+        {icon:'🍖', text:'Joe\'s KC at the QuikTrip gas station on 47th — world-class burnt ends'},
+        {icon:'🍖', text:'Gates Bar-B-Q or Arthur Bryant\'s for the full Kansas City experience'},
+        {icon:'😴', text:'Rest day — hotel AC, laundry, grocery run for the road ahead'},
+        {icon:'🎷', text:'18th & Vine Jazz District if energy allows'},
+      ],
+      stay:'Kansas City, MO', heat:null,
+      tip:'Joe\'s KC is worth any wait. Order the Z-Man sandwich and burnt ends.'
+    },
+  ]},
+  {id:'rockies', label:'Phase 3 — The Rockies', color:'#1D4ED8', segments:[
+    {label:'Day 5', from:'Kansas City, MO', to:'Denver, CO', drive:'8.5 hrs · 600 mi', date:'2026-07-17',
+      activities:[
+        {icon:'🚗', text:'Long plains drive — leave by 6am, watch the Rockies emerge on the horizon'},
+        {icon:'🏙️', text:'Denver RiNo District for dinner on arrival'},
+        {icon:'😴', text:'Rest night before the mountains'},
+      ],
+      stay:'Denver, CO', heat:null,
+      tip:'Break it in Salina, KS (~4 hrs from KC) if you want an easier two-day split.'
+    },
+    {label:'Days 6–7', from:'Denver, CO', to:'Rocky Mountain NP, CO', drive:'1.5 hrs · 80 mi', date:'2026-07-18',
+      activities:[
+        {icon:'🥾', text:'Emerald Lake Trail — 3.6 mi, stunning alpine basin with three stacked lakes'},
+        {icon:'🥾', text:'Sky Pond via Glacier Gorge — 8.8 mi, technical scramble with an incredible reward'},
+        {icon:'🥾', text:'Bear Lake Loop — 0.9 mi, easy wildflower walk'},
+        {icon:'🚗', text:'Trail Ridge Road scenic drive — highest continuous paved road in the US (12,183 ft)'},
+        {icon:'🦌', text:'Elk and moose near Kawuneeche Valley (west side of park)'},
+      ],
+      stay:'Estes Park, CO (2 nights)', heat:null,
+      tip:'Alpine lakes are too cold for swimming but breathtakingly clear. Timed-entry permits required — book on recreation.gov.'
+    },
+  ]},
+  {id:'utah', label:'Phase 4 — Utah Parks Cluster', color:'#D85A30', segments:[
+    {label:'Day 8', from:'Rocky Mountain NP, CO', to:'Moab, UT', drive:'5.5 hrs · 350 mi', date:'2026-07-21',
+      activities:[
+        {icon:'👁️', text:'Colorado National Monument — 20 min off I-70, stunning canyon overlooks'},
+        {icon:'🏊', text:'Colorado River at Hittle Bottom — swimming and rope swings near Moab'},
+        {icon:'🌅', text:'Arrive at sunset for canyon walls glowing orange'},
+      ],
+      stay:'Moab, UT', heat:'⚠️ July heat in Moab reaches 100–108°F. Hike before 8am or after 5pm. Carry 1L water per hour.',
+      tip:'Moab is base camp for both Arches AND Canyonlands — no need to move hotels.'
+    },
+    {label:'Day 9', from:'Moab, UT', to:'Arches National Park', drive:'15 min · 5 mi', date:'2026-07-22',
+      activities:[
+        {icon:'🥾', text:'Delicate Arch — 3 mi round trip, start before 7am in July, iconic reward'},
+        {icon:'🥾', text:'Devils Garden Trail — 7.8 mi loop, passes the most arches of any single hike'},
+        {icon:'🥾', text:'Landscape Arch — 1.9 mi, the longest natural arch in North America'},
+        {icon:'🌄', text:'Fiery Furnace viewpoint at golden hour'},
+      ],
+      stay:'Moab, UT', heat:'⚠️ Park closes to new entries when temps are extreme. Arrive at opening (6am). Bring 3+ liters of water.',
+      tip:null
+    },
+    {label:'Day 10', from:'Moab, UT', to:'Canyonlands + Dead Horse Point', drive:'40 min · 25 mi', date:'2026-07-23',
+      activities:[
+        {icon:'🌄', text:'Mesa Arch — 0.5 mi, arrive at sunrise for the red canyon-glow framing shot'},
+        {icon:'🥾', text:'Grand View Point — 2 mi, most dramatic Island in the Sky overlook'},
+        {icon:'👁️', text:'Dead Horse Point State Park — Colorado River horseshoe, rivals the Grand Canyon'},
+        {icon:'🏊', text:'Lions Park, Moab — cool off in the Colorado River in the afternoon'},
+      ],
+      stay:'Moab, UT', heat:'⚠️ Same heat advisory — do all Canyonlands hiking before 9am.',
+      tip:'Dead Horse Point and Island in the Sky are 15 min apart. Do both in one morning loop.'
+    },
+  ]},
+  {id:'arizona', label:'Phase 5 — Arizona & Zion', color:'#EA580C', segments:[
+    {label:'Days 13–14', from:'Moab, UT', to:'Grand Canyon South Rim, AZ', drive:'4 hrs · 265 mi', date:'2026-07-24',
+      activities:[
+        {icon:'🥾', text:'Rim Trail — flat, paved, 13 mi total (walk any section you want)'},
+        {icon:'🥾', text:'Bright Angel to 1.5 Mile Resthouse — 3 mi, morning only in July'},
+        {icon:'👁️', text:'Mather Point — most accessible and iconic Grand Canyon overlook'},
+        {icon:'👁️', text:'Desert View Watchtower — east rim, 25 mi drive, stunning Navajo architecture'},
+        {icon:'🌅', text:'Yavapai Point at sunset — arguably the best view on the South Rim'},
+      ],
+      stay:'Grand Canyon Village or Tusayan, AZ (2 nights)',
+      heat:'⚠️ Rim elevation is 7,000 ft — manageable. Do NOT descend past the 1.5 Mile Resthouse in July. Inner canyon hits 110°F+.',
+      tip:'The canyon is 1 mile deep — every step down must be climbed back up in heat. The rim alone is spectacular.'
+    },
+    {label:'Days 15–16', from:'Grand Canyon, AZ', to:'Zion National Park, UT', drive:'2.5 hrs · 165 mi', date:'2026-07-26',
+      activities:[
+        {icon:'🥾', text:'Angels Landing — 5.4 mi, permit required, chain scramble section is unforgettable'},
+        {icon:'🏊', text:'The Narrows (bottom-up) — wade and swim the Virgin River through a slot canyon'},
+        {icon:'🥾', text:'Emerald Pools Trail — 1.3–3 mi, shaded canyon walk with small waterfalls'},
+        {icon:'👁️', text:'Canyon Overlook Trail — 1 mi, arch-framed canyon view'},
+        {icon:'🏊', text:'Virgin River in the canyon bottom — best natural cooldown in the park'},
+      ],
+      stay:'Springdale, UT (2 nights)',
+      heat:'⚠️ Zion canyon floor hits 105°F in July. The Narrows is the exception — do it when hottest. Everywhere else: hike before 9am.',
+      tip:'Angels Landing permits are lottery-based ($6). Book on recreation.gov 1–3 days ahead for best odds.'
+    },
+  ]},
+  {id:'desert', label:'Phase 6 — Desert Finale', color:'#BA7517', segments:[
+    {label:'Day 17', from:'Zion NP, UT', to:'Las Vegas, NV', drive:'2.5 hrs · 160 mi', date:'2026-07-28',
+      activities:[
+        {icon:'👁️', text:'Valley of Fire State Park — highly recommended 50 min detour, otherworldly red rock'},
+        {icon:'🏊', text:'Lake Mead — swim at Boulder Beach if water levels allow'},
+        {icon:'😴', text:'Las Vegas: AC, a great meal, one night of city spectacle'},
+        {icon:'🛒', text:'Restock water, sunscreen, and road snacks for the final stretch'},
+      ],
+      stay:'Las Vegas, NV', heat:'⚠️ Las Vegas averages 107°F in July. Valley of Fire is best at dawn — plan accordingly.',
+      tip:'One night is enough. The desert parks are the point of this journey.'
+    },
+    {label:'Day 18', from:'Las Vegas, NV', to:'Joshua Tree NP, CA', drive:'3.5 hrs · 205 mi', date:'2026-07-29',
+      activities:[
+        {icon:'🥾', text:'Skull Rock Nature Trail — 1.7 mi, surreal boulder landscape at dusk'},
+        {icon:'🥾', text:'Arch Rock — short trail, stunning in late-afternoon light'},
+        {icon:'🌵', text:'Cholla Cactus Garden — eerie 10-min loop, magic hour photography'},
+        {icon:'🌟', text:'Milky Way stargazing — one of the best dark sky preserves in Southern California'},
+      ],
+      stay:'Twentynine Palms or Yucca Valley, CA',
+      heat:'⚠️ Joshua Tree hits 110°F+ in July. Arrive late afternoon. Hike only at dusk and dawn. The stars are the main event.',
+      tip:'Bring 5+ liters of water per person — there is no water inside the park boundaries.'
+    },
+    {label:'Days 19–20', from:'Joshua Tree NP, CA', to:'Los Angeles, CA', drive:'2.5 hrs · 130 mi', date:'2026-07-30',
+      activities:[
+        {icon:'🌅', text:'Ryan Mountain sunrise — 3 mi, start before 5:30am for the pink light show'},
+        {icon:'🚗', text:'Palms to Pines Scenic Byway through San Bernardino Mountains (optional)'},
+        {icon:'🌊', text:'Stop at Malibu or Santa Monica — dip in the Pacific after 3 weeks in the desert'},
+        {icon:'🌟', text:'Pittsburgh to Los Angeles, the long way around — you made it'},
+      ],
+      stay:'Los Angeles, CA — your new home', heat:null,
+      tip:'The Pacific will feel impossibly cold and perfect after the Mojave. You earned it.'
+    },
+  ]},
+];
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let customStops = JSON.parse(localStorage.getItem('rt_custom') || '[]');
+let journal     = JSON.parse(localStorage.getItem('rt_journal') || '{}');
+let isPublic    = localStorage.getItem('rt_public') === 'true';
+
+let map, markers = {}, routeLine, mapReady = false;
+let selectedStopId = null;
+const MAX_PHOTOS_PER_STOP = 12;
+
+function allStops() {
+  return [...BASE, ...customStops].sort((a,b) => a.date.localeCompare(b.date));
+}
+function persist() {
+  localStorage.setItem('rt_custom', JSON.stringify(customStops));
+  try {
+    localStorage.setItem('rt_journal', JSON.stringify(journal));
+  } catch (err) {
+    if (err && (err.name === 'QuotaExceededError' || err.code === 22)) {
+      toast('Storage full — remove some photos to save more');
+    }
+    throw err;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// COLORS
+// ═══════════════════════════════════════════════
+const STOP_CLR = {origin:'#2563EB',destination:'#BA7517',city:'#D85A30',park:'#1D9E75',rest:'#9CA3AF',custom:'#7C3AED'};
+const DAY_CLR  = {drive:'#2563EB',park:'#1D9E75',city:'#D85A30',rest:'#9CA3AF',milestone:'#BA7517'};
+const ICON_MAP = {origin:'🏠',destination:'🌟',city:'🏙️',park:'🌲',rest:'😴',custom:'📍'};
+
+function stopColor(type){ return STOP_CLR[type] || STOP_CLR.custom }
+function dayColor(type) { return DAY_CLR[type]  || '#9CA3AF' }
+
+// ═══════════════════════════════════════════════
+// DATE HELPERS
+// ═══════════════════════════════════════════════
+function fmtFull(ds){
+  const d = new Date(ds+'T00:00:00');
+  return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+function fmtDay(ds) { return new Date(ds+'T00:00:00').getDate() }
+function fmtMon(ds) { return new Date(ds+'T00:00:00').toLocaleDateString('en-US',{month:'short'}) }
+
+// ═══════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+
+  const addPanel = document.getElementById('add-panel');
+  addPanel.classList.toggle('show', tab === 'schedule');
+  if (tab !== 'schedule') addPanel.classList.add('add-collapsed');
+
+  if (tab === 'map') {
+    if (!mapReady) setTimeout(initMap, 50);
+    else setTimeout(() => { map && map.invalidateSize(false); }, 80);
+  }
+  if (tab === 'share') renderShare();
+}
+
+// ═══════════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════════
+const MAP_STOP_LABELS = {
+  pittsburgh:'Pittsburgh', nrg:'New River Gorge', ozarks:'Ozark Riverways',
+  kansascity:'Kansas City', denver:'Denver', rmnp:'Rocky Mtn NP',
+  moab:'Moab', arches:'Arches NP', canyonlands:'Canyonlands',
+  grandcanyon:'Grand Canyon', zion:'Zion NP', lasvegas:'Las Vegas',
+  joshuatree:'Joshua Tree', losangeles:'Los Angeles',
+};
+
+function mapStopLabel(stop) {
+  if (MAP_STOP_LABELS[stop.id]) return MAP_STOP_LABELS[stop.id];
+  return stop.name.split(',')[0].trim();
+}
+
+function markerIcon(color, label) {
+  const text = (label || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return L.divIcon({
+    html:`<div class="map-pin">
+      <div class="map-pin-dot" style="background:${color}"></div>
+      <div class="map-pin-label">${text}</div>
+    </div>`,
+    className:'map-marker-leaflet', iconSize:[0,0], iconAnchor:[0,0], popupAnchor:[0,-12]
+  });
+}
+
+function popupHtml(stop) {
+  const j = journal[stop.id];
+  const preview = j && j.entry
+    ? `<div class="popup-journal">"${j.entry.slice(0,90)}${j.entry.length>90?'…':''}"</div>`
+    : '';
+  return `<div class="popup-name">${stop.name}</div>
+    <div class="popup-date">${fmtFull(stop.date)}</div>
+    ${stop.note ? `<div class="popup-note">${stop.note}</div>` : ''}
+    ${preview}`;
+}
+
+function initMap() {
+  if (mapReady) return;
+  mapReady = true;
+  map = L.map('map', {zoomControl:true, preferCanvas:true});
+  map.setView([38.5, -96.0], 4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom:18
+  }).addTo(map);
+  setTimeout(() => {
+    map.invalidateSize();
+    buildMapLayer();
+  }, 50);
+}
+
+function buildMapLayer() {
+  if (!mapReady) return;
+  Object.values(markers).forEach(m => m.remove());
+  markers = {};
+  if (routeLine) { routeLine.remove(); routeLine = null; }
+
+  const stops = allStops();
+  const lls = [];
+  stops.forEach(s => {
+    const m = L.marker([s.lat, s.lng], {icon: markerIcon(stopColor(s.type), mapStopLabel(s))})
+      .addTo(map)
+      .on('click', () => selectStop(s.id));
+    markers[s.id] = m;
+    lls.push([s.lat, s.lng]);
+  });
+  routeLine = L.polyline(lls, {color:'#E87722', weight:2.5, opacity:.8, dashArray:'9,6'}).addTo(map);
+  map.fitBounds(L.latLngBounds(lls), {padding:[24,24]});
+}
+
+function selectStop(id, opts = {}) {
+  const fly = opts.fly !== false;
+  const toggle = opts.toggle !== false;
+  const s = allStops().find(x => x.id === id);
+  if (!s) return;
+
+  if (toggle && selectedStopId === id) {
+    selectedStopId = null;
+    renderStopsList();
+    return;
+  }
+
+  selectedStopId = id;
+  renderStopsList();
+  if (map && fly) map.flyTo([s.lat, s.lng], 11, { duration: 1.1 });
+  const scrollToItem = () => {
+    const item = document.getElementById('stop-item-' + id);
+    if (item) item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+  if (fly) setTimeout(scrollToItem, 450);
+  else scrollToItem();
+}
+
+function renderStopsList() {
+  const el = document.getElementById('stops-list');
+  if (!el) return;
+  el.innerHTML = allStops().map(s => {
+    const sel = selectedStopId === s.id;
+    const journalPanel = sel
+      ? `<div class="stop-journal-inline" onclick="event.stopPropagation()">${journalInlineHtml(s)}</div>`
+      : '';
+    return `<div class="stop-item${sel ? ' expanded' : ''}" id="stop-item-${s.id}">
+      <div class="stop-row${sel ? ' selected' : ''}" onclick="selectStop('${s.id}')">
+        <div class="stop-dot" style="background:${stopColor(s.type)}"></div>
+        <div class="stop-row-info">
+          <div class="stop-row-name">${s.name}</div>
+          <div class="stop-row-date">${fmtFull(s.date)}</div>
+        </div>
+        <span class="type-badge tb-${['origin','destination'].includes(s.type)?s.type:s.type}">${s.type}</span>
+      </div>
+      ${journalPanel}
+    </div>`;
+  }).join('');
+  if (selectedStopId) mountPhotoGallery(selectedStopId);
+}
+
+// ═══════════════════════════════════════════════
+// SCHEDULE
+// ═══════════════════════════════════════════════
+function allSchedItems() {
+  const extras = customStops.map(s => ({
+    date:s.date, type:s.type==='park'?'park':s.type==='rest'?'rest':'city',
+    title:s.name, detail:'Custom stop', miles:0, sid:s.id, custom:true
+  }));
+  return [...SCHED, ...extras].sort((a,b) => a.date.localeCompare(b.date));
+}
+
+function parseTimeMins(t) {
+  const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!m) return 0;
+  let h = +m[1], min = +m[2];
+  if (m[3].toUpperCase() === 'PM' && h !== 12) h += 12;
+  if (m[3].toUpperCase() === 'AM' && h === 12) h = 0;
+  return h * 60 + min;
+}
+
+function blockDurationMins(b) {
+  const d = parseTimeMins(b.end) - parseTimeMins(b.start);
+  return d > 0 ? d : 0;
+}
+
+function formatDuration(mins) {
+  if (mins < 60) return mins + ' min';
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return m ? `${h}h ${m}m` : `${h} hr${h > 1 ? 's' : ''}`;
+}
+
+function dayStats(blocks) {
+  let drive = 0, free = 0;
+  blocks.forEach(b => {
+    const mins = blockDurationMins(b);
+    if (b.type === 'drive') drive += mins;
+    else if (b.type === 'explore' || b.type === 'meal') free += mins;
+  });
+  return { drive, free };
+}
+
+const TL_TYPE = {
+  drive:   { tag:'Driving',   dot:'tl-dot-drive',   cls:'tl-type-drive' },
+  explore: { tag:'Free time', dot:'tl-dot-explore', cls:'tl-type-explore' },
+  rest:    { tag:'Rest',      dot:'tl-dot-rest',    cls:'tl-type-rest' },
+  meal:    { tag:'Meal',      dot:'tl-dot-meal',    cls:'tl-type-meal' },
+};
+
+function syncDayAria(el) {
+  const btn = el && el.querySelector('.day-card-hdr');
+  if (btn) btn.setAttribute('aria-expanded', !el.classList.contains('day-collapsed'));
+}
+
+function toggleDay(date) {
+  const el = document.getElementById('day-' + date);
+  if (!el) return;
+  el.classList.toggle('day-collapsed');
+  syncDayAria(el);
+}
+
+function openDay(date) {
+  const el = document.getElementById('day-' + date);
+  if (!el) return;
+  el.classList.remove('day-collapsed');
+  syncDayAria(el);
+}
+
+function renderDailySchedule() {
+  const el = document.getElementById('daily-schedule');
+  if (!el) return;
+  const items = allSchedItems();
+  el.innerHTML = items.map(item => {
+    const plan = DAILY_PLANS[item.date];
+    if (!plan) return dayRowFallback(item);
+    return dayCardHtml(item, plan);
+  }).join('');
+}
+
+function dayRowFallback(item) {
+  const color = dayColor(item.type);
+  const isDrive = item.type === 'drive' && item.miles > 0;
+  return `<div class="day-card">
+    <div class="day-card-hdr">
+      <div class="day-card-date"><div class="day-card-num">${fmtDay(item.date)}</div><div class="day-card-dow">${fmtMon(item.date)}</div></div>
+      <div class="day-card-title-wrap">
+        <div class="day-card-title">${item.title}</div>
+        <div class="day-card-sub">${item.detail}</div>
+      </div>
+      ${isDrive ? `<span class="day-chip chip-drive">🚗 ${item.miles} mi</span>` : ''}
+    </div>
+    <div class="day-bar" style="height:3px;background:${color};margin:0 14px 12px;border-radius:2px"></div>
+  </div>`;
+}
+
+function dayCardHtml(item, plan) {
+  const d = new Date(item.date + 'T00:00:00');
+  const dow = d.toLocaleDateString('en-US', { weekday: 'short' });
+  const stats = dayStats(plan.blocks);
+  const driveChip = stats.drive
+    ? `<span class="day-chip chip-drive">🚗 ${formatDuration(stats.drive)} driving</span>` : '';
+  const freeChip = stats.free
+    ? `<span class="day-chip chip-free">🌲 ${formatDuration(stats.free)} free time</span>` : '';
+  const restChip = !stats.drive && !stats.free
+    ? `<span class="day-chip chip-rest">😴 Mostly rest</span>` : '';
+
+  const sleepCont = plan.sleep.continues
+    ? `<div class="sleep-continues">Same place as last night</div>` : '';
+
+  const blocks = plan.blocks.map(b => {
+    const meta = TL_TYPE[b.type] || TL_TYPE.explore;
+    const ideas = b.ideas && b.ideas.length
+      ? `<ul class="tl-ideas">${b.ideas.map(i => `<li>${i}</li>`).join('')}</ul>` : '';
+    const detail = b.detail ? `<div class="tl-detail">${b.detail}</div>` : '';
+    return `<div class="tl-block">
+      <div class="tl-times">${b.start}<br>–<br>${b.end}</div>
+      <div class="tl-dot ${meta.dot}"></div>
+      <div class="tl-body">
+        <div class="tl-label">${b.label}
+          <span class="tl-type-tag ${meta.cls}">${meta.tag}</span>
+        </div>
+        ${detail}${ideas}
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div class="day-card day-collapsed" id="day-${item.date}">
+    <button type="button" class="day-card-hdr" onclick="toggleDay('${item.date}')" aria-expanded="false" aria-controls="day-body-${item.date}">
+      <div class="day-card-date">
+        <div class="day-card-num">${fmtDay(item.date)}</div>
+        <div class="day-card-dow">${dow}</div>
+      </div>
+      <div class="day-card-title-wrap">
+        <div class="day-card-title">${plan.title}</div>
+      </div>
+      <span class="day-chevron" aria-hidden="true">▾</span>
+      <div class="day-chips">${driveChip}${freeChip}${restChip}</div>
+      <div class="day-hdr-foot">
+        <span class="day-sleep-compact">🛏️ ${plan.sleep.place}</span>
+      </div>
+    </button>
+    <div class="day-card-body" id="day-body-${item.date}">
+      <div class="day-card-sub-expanded">${item.detail}</div>
+      <div class="sleep-banner">
+      <span class="sleep-icon">🛏️</span>
+      <div>
+        ${sleepCont}
+        <div class="sleep-place">Sleep: ${plan.sleep.place}</div>
+        <div class="sleep-note">${plan.sleep.note}</div>
+      </div>
+    </div>
+    <div class="timeline">${blocks}</div>
+    </div>
+  </div>`;
+}
+
+function renderSchedule() {
+  const el = document.getElementById('sched-wrap');
+  if (!el) return;
+  const items = allSchedItems();
+  let html = '';
+
+  // Items covered by week bands
+  const covered = new Set();
+
+  WEEKS.forEach(wk => {
+    const wItems = items.filter(i => i.date >= wk.start && i.date <= wk.end);
+    if (!wItems.length) return;
+    html += `<div class="week-hdr">${wk.label}</div>`;
+    wItems.forEach(item => {
+      covered.add(item.date+'|'+item.title);
+      html += dayRowHtml(item);
+    });
+  });
+
+  // Custom stops outside all week ranges
+  const outside = items.filter(i => !covered.has(i.date+'|'+i.title));
+  if (outside.length) {
+    html += `<div class="week-hdr">Additional Stops</div>`;
+    outside.forEach(item => { html += dayRowHtml(item); });
+  }
+
+  el.innerHTML = html;
+}
+
+function dayRowHtml(item) {
+  const color = dayColor(item.type);
+  const miles = item.miles > 0 ? `<div class="day-miles">${item.miles} mi</div>` : '';
+  const rm = item.custom
+    ? `<button class="rm-btn" onclick="removeStop('${item.sid}')" title="Remove">✕</button>` : '';
+  return `<div class="day-row">
+    <div class="day-dt">
+      <div class="day-num">${fmtDay(item.date)}</div>
+      <div class="day-mon">${fmtMon(item.date)}</div>
+    </div>
+    <div class="day-bar" style="background:${color}"></div>
+    <div class="day-info">
+      <div class="day-title">${item.title}</div>
+      <div class="day-detail">${item.detail}</div>
+    </div>
+    ${miles}${rm}
+  </div>`;
+}
+
+function toggleAddPanel() {
+  const el = document.getElementById('add-panel');
+  if (!el.classList.contains('show')) return;
+  el.classList.toggle('add-collapsed');
+  if (!el.classList.contains('add-collapsed')) {
+    setTimeout(() => document.getElementById('ns-name')?.focus(), 80);
+  }
+}
+
+function addStop() {
+  const type = document.getElementById('ns-type').value;
+  const name = document.getElementById('ns-name').value.trim();
+  const date = document.getElementById('ns-date').value;
+  if (!name || !date) { toast('Fill in name and date'); return; }
+
+  // Place new stop roughly along the route based on date position
+  const routeLats = BASE.map(s=>s.lat), routeLngs = BASE.map(s=>s.lng);
+  const mid = Math.floor(routeLats.length/2);
+  const id = 'c_'+Date.now();
+  customStops.push({
+    id, name, type, date, miles:0, note:'Custom stop',
+    lat: routeLats[mid] + (Math.random()-.5)*2,
+    lng: routeLngs[mid] + (Math.random()-.5)*4,
+  });
+  persist();
+  document.getElementById('ns-name').value = '';
+  document.getElementById('ns-date').value = '';
+  document.getElementById('add-panel').classList.add('add-collapsed');
+  syncAll();
+  selectStop(id, { fly: true });
+  toast(`Added: ${name}`);
+}
+
+function removeStop(id) {
+  customStops = customStops.filter(s => s.id !== id);
+  if (selectedStopId === id) {
+    const stops = allStops();
+    selectedStopId = stops.length ? stops[0].id : null;
+  }
+  persist();
+  syncAll();
+  toast('Stop removed');
+}
+
+// ═══════════════════════════════════════════════
+// ITINERARY + CALENDAR
+// ═══════════════════════════════════════════════
+function renderItinerary() {
+  const el = document.getElementById('itinerary-content');
+  if (!el) return;
+  el.innerHTML = ITINERARY.map(phase => `
+    <div class="itin-phase ph-collapsed" id="phase-${phase.id}">
+      <div class="itin-phase-hdr" onclick="togglePhase('${phase.id}')">
+        <span class="phase-dot" style="background:${phase.color}"></span>
+        ${phase.label}
+        <span class="phase-chevron">▾</span>
+      </div>
+      ${phase.segments.map(seg => `
+        <div class="itin-segment" style="border-left:3px solid ${phase.color}">
+          <div class="seg-hdr">
+            <span class="seg-label">${seg.label}</span>
+            <span class="seg-route">${seg.from}<span class="arr"> → </span>${seg.to}</span>
+            <span class="seg-drive">${seg.drive}</span>
+          </div>
+          <div class="seg-body">
+            <ul class="seg-activities">
+              ${seg.activities.map(a=>`
+                <li class="seg-activity">
+                  <span class="act-icon">${a.icon}</span>
+                  <span class="act-text">${a.text}</span>
+                </li>`).join('')}
+            </ul>
+            <div class="seg-stay"><span>🛏️</span><span><strong>Tonight:</strong> ${seg.stay}</span></div>
+            ${seg.heat ? `<div class="seg-heat">${seg.heat}</div>` : ''}
+            ${seg.tip  ? `<div class="seg-tip">💡 ${seg.tip}</div>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function togglePhase(id) {
+  const el = document.getElementById('phase-' + id);
+  if (el) el.classList.toggle('ph-collapsed');
+}
+
+function openPhase(id) {
+  const el = document.getElementById('phase-' + id);
+  if (el) el.classList.remove('ph-collapsed');
+}
+
+// Build a date-string → phase-id lookup from ITINERARY
+function buildDatePhaseMap() {
+  const map = {};
+  ITINERARY.forEach((phase, pi) => {
+    phase.segments.forEach((seg, si) => {
+      const next = phase.segments[si+1]
+        ? phase.segments[si+1].date
+        : (ITINERARY[pi+1] ? ITINERARY[pi+1].segments[0].date : '2026-08-04');
+      let d = new Date(seg.date + 'T00:00:00');
+      const end = new Date(next + 'T00:00:00');
+      while (d < end) {
+        map[d.toISOString().slice(0,10)] = phase.id;
+        d.setDate(d.getDate() + 1);
+      }
+    });
+  });
+  return map;
+}
+
+// Clear one-line headline per calendar day (replaces cryptic abbreviations)
+const CAL_HEADLINES = {
+  '2026-07-12':'Drive to New River Gorge',
+  '2026-07-13':'Hike & swim the gorge',
+  '2026-07-14':'Long drive to Ozarks',
+  '2026-07-15':'Float the Current River',
+  '2026-07-16':'Drive to Kansas City',
+  '2026-07-17':'Drive to Denver',
+  '2026-07-18':'Denver rest day',
+  '2026-07-19':'Drive to Rocky Mountain NP',
+  '2026-07-20':'Rocky Mountain hikes',
+  '2026-07-21':'Drive to Moab',
+  '2026-07-22':'Arches National Park',
+  '2026-07-23':'Canyonlands sunrise',
+  '2026-07-24':'Drive to Grand Canyon',
+  '2026-07-25':'Grand Canyon rim day',
+  '2026-07-26':'Drive to Zion',
+  '2026-07-27':'Angels Landing & Narrows',
+  '2026-07-28':'Drive to Las Vegas',
+  '2026-07-29':'Drive to Joshua Tree',
+  '2026-07-30':'Joshua Tree exploring',
+  '2026-07-31':'Drive home to LA 🎉',
+};
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getCalDayDisplay(ds, item) {
+  const plan = DAILY_PLANS[ds];
+  const headline = CAL_HEADLINES[ds] || item.title;
+  const subParts = [];
+
+  if (plan) {
+    const stats = dayStats(plan.blocks);
+    if (stats.drive) subParts.push('Drive ' + formatDuration(stats.drive));
+    else if (stats.free) subParts.push('Explore ' + formatDuration(stats.free));
+    else subParts.push('Rest & recharge');
+    const town = plan.sleep.place.split(',')[0].trim();
+    subParts.push('Sleep: ' + town);
+    if (plan.sleep.continues) subParts.push('(same place)');
+    return {
+      primary: headline,
+      secondary: subParts.join(' · '),
+      tooltip: plan.title + '\n' + item.detail + '\n\n' + subParts.join(' · '),
+      type: item.type,
+    };
+  }
+
+  const typeLbl = { drive:'Driving day', park:'Park day', city:'City day', rest:'Rest day' }[item.type] || item.type;
+  return {
+    primary: headline,
+    secondary: typeLbl,
+    tooltip: item.title + (item.detail ? '\n' + item.detail : ''),
+    type: item.type,
+  };
+}
+
+function renderCalendar() {
+  const el = document.getElementById('cal-section');
+  if (!el) return;
+
+  // date → sched entry
+  const schedMap = {};
+  [...SCHED, ...customStops.map(s=>({
+    date:s.date, type:s.type==='park'?'park':s.type==='rest'?'rest':'city', title:s.name
+  }))].forEach(item => { if (!schedMap[item.date]) schedMap[item.date] = item; });
+
+  const phaseMap = buildDatePhaseMap();
+  const MNAMES = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  const DOW = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  el.innerHTML = [{y:2026,m:6}].map(({y,m}) => {
+    const firstDow = new Date(y, m, 1).getDay();
+    const numDays  = new Date(y, m+1, 0).getDate();
+    let cells = [];
+
+    for (let i=0; i<firstDow; i++)
+      cells.push('<div class="cal-day cal-empty"></div>');
+
+    for (let d=1; d<=numDays; d++) {
+      const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const item = schedMap[ds];
+      if (item) {
+        const cal = getCalDayDisplay(ds, item);
+        const clr = DAY_CLR[cal.type] || '#9CA3AF';
+        const pid = phaseMap[ds] || '';
+        const tip = escapeHtml(cal.tooltip).replace(/\n/g, '&#10;');
+        cells.push(`<div class="cal-day cal-has" title="${tip}" onclick="calClick('${ds}','${pid}')">
+          <span class="cal-num">${d}</span>
+          <span class="cal-lbl">${escapeHtml(cal.primary)}</span>
+          <span class="cal-sub">${escapeHtml(cal.secondary)}</span>
+          <div class="cal-bar" style="background:${clr}"></div>
+        </div>`);
+      } else {
+        const preTrip = ds < '2026-07-12';
+        cells.push(`<div class="cal-day${preTrip?' cal-pre':''}"><span class="cal-num">${d}</span></div>`);
+      }
+    }
+
+    return `<div class="cal-month">
+      <div class="cal-month-title">${MNAMES[m]} ${y}</div>
+      <div class="cal-grid">
+        ${DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+        ${cells.join('')}
+      </div>
+      <div class="cal-legend">
+        <span class="cal-legend-item"><span class="cal-legend-swatch" style="background:#2563EB"></span>Driving</span>
+        <span class="cal-legend-item"><span class="cal-legend-swatch" style="background:#1D9E75"></span>Park / explore</span>
+        <span class="cal-legend-item"><span class="cal-legend-swatch" style="background:#D85A30"></span>City</span>
+        <span class="cal-legend-item"><span class="cal-legend-swatch" style="background:#9CA3AF"></span>Rest</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function calClick(dateStr, phaseId) {
+  const dayEl = document.getElementById('day-' + dateStr);
+  if (dayEl) {
+    openDay(dateStr);
+    dayEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    dayEl.style.boxShadow = '0 0 0 2px var(--coral)';
+    setTimeout(() => { dayEl.style.boxShadow = ''; }, 1800);
+    return;
+  }
+  if (!phaseId) return;
+  openPhase(phaseId);
+  const el = document.getElementById('phase-' + phaseId);
+  if (el) setTimeout(() => el.scrollIntoView({behavior:'smooth', block:'start'}), 60);
+}
+
+// ═══════════════════════════════════════════════
+// JOURNAL
+// ═══════════════════════════════════════════════
+
+function migrateJournalPhotos() {
+  Object.keys(journal).forEach(sid => {
+    const j = journal[sid];
+    if (j && j.photos) j.photos = j.photos.map(normalizePhoto).filter(Boolean);
+  });
+}
+
+function isImageFile(file) {
+  if (file.type && file.type.startsWith('image/')) return true;
+  return /\.(jpe?g|png|gif|webp|bmp|heic|heif)$/i.test(file.name || '');
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function bitmapToJpeg(file, maxW, quality) {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxW / bitmap.width);
+  const w = Math.max(1, Math.round(bitmap.width * scale));
+  const h = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+  if (bitmap.close) bitmap.close();
+  return canvas.toDataURL('image/jpeg', quality);
+}
+
+function compressDataUrl(dataUrl, maxW, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxW / img.width);
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => reject(new Error('Could not decode image'));
+    img.src = dataUrl;
+  });
+}
+
+async function fileToPhotoData(file) {
+  if (typeof createImageBitmap === 'function') {
+    try {
+      return await bitmapToJpeg(file, 1200, 0.85);
+    } catch (e) {
+      console.warn('createImageBitmap failed, trying fallback', e);
+    }
+  }
+  const raw = await readFileAsDataURL(file);
+  if (typeof raw !== 'string' || !raw.startsWith('data:image')) {
+    throw new Error('Not a valid image file');
+  }
+  try {
+    return await compressDataUrl(raw, 1200, 0.85);
+  } catch {
+    if (/^data:image\/(jpeg|jpg|png|gif|webp);/i.test(raw)) return raw;
+    throw new Error('This format is not supported here. Try JPG or PNG.');
+  }
+}
+
+function normalizePhoto(p) {
+  if (!p) return null;
+  if (typeof p === 'string' && p.startsWith('data:image')) return { data: p, caption: '' };
+  if (p && typeof p === 'object' && typeof p.data === 'string' && p.data.startsWith('data:image')) {
+    return { data: p.data, caption: p.caption || '' };
+  }
+  return null;
+}
+
+function getPhotos(j) {
+  if (!j || !j.photos) return [];
+  return j.photos.map(normalizePhoto).filter(Boolean);
+}
+
+function escAttr(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+function mountPhotoGallery(sid) {
+  const el = document.getElementById('photo-gallery-' + sid);
+  if (!el) return;
+  const photos = getPhotos(journal[sid] || {});
+  const countEl = document.getElementById('photo-count-' + sid);
+  if (countEl) {
+    countEl.textContent = photos.length
+      ? `${photos.length} photo${photos.length > 1 ? 's' : ''}` : '';
+  }
+  el.innerHTML = '';
+  photos.forEach((photo, idx) => {
+    const item = document.createElement('div');
+    item.className = 'photo-item';
+    const wrap = document.createElement('div');
+    wrap.className = 'photo-thumb-wrap';
+    const img = document.createElement('img');
+    img.className = 'photo-thumb-img';
+    img.alt = photo.caption || 'Trip photo';
+    img.src = photo.data;
+    img.onerror = () => { wrap.innerHTML = '<span class="photo-broken">Preview unavailable</span>'; };
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'photo-rm';
+    rm.innerHTML = '×';
+    rm.setAttribute('aria-label', 'Remove photo');
+    rm.onclick = (e) => removePhoto(sid, idx, e);
+    wrap.appendChild(img);
+    wrap.appendChild(rm);
+    const cap = document.createElement('input');
+    cap.type = 'text';
+    cap.className = 'photo-caption';
+    cap.placeholder = 'Add a caption…';
+    cap.value = photo.caption || '';
+    cap.onblur = () => savePhotoCaption(sid, idx, cap.value);
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'photo-delete-link';
+    del.textContent = 'Delete photo';
+    del.onclick = (e) => removePhoto(sid, idx, e);
+    item.appendChild(wrap);
+    item.appendChild(cap);
+    item.appendChild(del);
+    el.appendChild(item);
+  });
+}
+
+function journalInlineHtml(s) {
+  const j = journal[s.id] || {};
+  const photos = getPhotos(j);
+  const place = s.name.split(',')[0];
+
+  const body = j.entry
+    ? `<div class="j-entry-display">"${escapeHtml(j.entry)}"</div>
+       <div class="j-actions">
+         <button type="button" class="j-edit" onclick="editEntry('${s.id}')">Edit</button>
+         <button type="button" class="j-delete" onclick="deleteEntry('${s.id}')">Delete</button>
+       </div>`
+    : `<textarea class="j-textarea" id="jt-${s.id}" placeholder="Write about ${place}…">${j.draft||''}</textarea>
+       <div class="j-actions"><button type="button" class="j-save" onclick="saveEntry('${s.id}')">Save entry</button></div>`;
+
+  return `
+    <div class="photo-row">
+      <button type="button" class="photo-btn" onclick="pickPhotos('${s.id}', event)">📷 Upload photo</button>
+      <span class="photo-count" id="photo-count-${s.id}">${photos.length ? photos.length + ' photo' + (photos.length > 1 ? 's' : '') : ''}</span>
+    </div>
+    <div class="photo-gallery" id="photo-gallery-${s.id}"></div>
+    ${body}`;
+}
+
+function saveEntry(sid) {
+  const ta = document.getElementById('jt-'+sid);
+  if (!ta) return;
+  const txt = ta.value.trim();
+  if (!txt) { toast('Write something first!'); return; }
+  if (!journal[sid]) journal[sid] = {};
+  journal[sid].entry = txt;
+  delete journal[sid].draft;
+  persist();
+  renderStopsList();
+  toast('Entry saved ✓');
+}
+
+function editEntry(sid) {
+  if (!journal[sid]) return;
+  journal[sid].draft = journal[sid].entry;
+  delete journal[sid].entry;
+  persist();
+  renderStopsList();
+}
+
+function deleteEntry(sid) {
+  if (!journal[sid] || !journal[sid].entry) return;
+  if (!confirm('Delete this journal entry?')) return;
+  delete journal[sid].entry;
+  delete journal[sid].draft;
+  if (!getPhotos(journal[sid]).length) delete journal[sid];
+  persist();
+  renderStopsList();
+  toast('Entry deleted');
+}
+
+function savePhotoCaption(sid, idx, caption) {
+  if (!journal[sid]) return;
+  const photos = getPhotos(journal[sid]);
+  if (!photos[idx]) return;
+  photos[idx].caption = caption.trim();
+  journal[sid].photos = photos;
+  persist();
+}
+
+function pickPhotos(sid, evt) {
+  if (evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+  }
+  const input = document.getElementById('photo-file-input');
+  if (!input) return;
+  input.value = '';
+  const onChange = async (e) => {
+    input.removeEventListener('change', onChange);
+    const files = e.target.files;
+    input.value = '';
+    await handlePhotoFiles(sid, files);
+  };
+  input.addEventListener('change', onChange, { once: true });
+  input.click();
+}
+
+async function handlePhotoFiles(sid, fileList) {
+  if (!sid || !fileList || !fileList.length) return;
+
+  if (!journal[sid]) journal[sid] = {};
+  const existing = getPhotos(journal[sid]);
+  const room = MAX_PHOTOS_PER_STOP - existing.length;
+  if (room <= 0) {
+    toast(`Max ${MAX_PHOTOS_PER_STOP} photos per stop`);
+    return;
+  }
+
+  const files = Array.from(fileList).filter(isImageFile).slice(0, room);
+  if (!files.length) {
+    toast('Please choose an image file (JPG, PNG, HEIC, etc.)');
+    return;
+  }
+
+  const photos = [...existing];
+  let added = 0;
+  for (const file of files) {
+    try {
+      const data = await fileToPhotoData(file);
+      photos.push({ data, caption: '' });
+      added++;
+    } catch (err) {
+      console.error('Photo upload failed:', err);
+      toast(`Could not add ${file.name || 'photo'}`);
+    }
+  }
+
+  if (!added) return;
+
+  journal[sid].photos = photos;
+  selectedStopId = sid;
+
+  try {
+    persist();
+  } catch (err) {
+    if (err && (err.name === 'QuotaExceededError' || err.code === 22)) {
+      toast('Photos shown but storage is full — remove some to save');
+    }
+  }
+
+  renderStopsList();
+  renderShare();
+  toast(added === 1 ? 'Photo added ✓' : `${added} photos added ✓`);
+
+  const item = document.getElementById('stop-item-' + sid);
+  if (item) item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function removePhoto(sid, idx, evt) {
+  if (evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+  }
+  if (!journal[sid]) return;
+  const photos = getPhotos(journal[sid]);
+  if (!photos[idx]) return;
+  if (!confirm('Delete this photo?')) return;
+  photos.splice(idx, 1);
+  journal[sid].photos = photos;
+  if (!photos.length && !journal[sid].entry && !journal[sid].draft) delete journal[sid];
+  persist();
+  renderStopsList();
+  renderShare();
+  toast('Photo deleted');
+}
+
+function initPhotoUpload() {
+  /* file picker wired per-upload in pickPhotos() */
+}
+
+
+// ═══════════════════════════════════════════════
+// SHARE
+// ═══════════════════════════════════════════════
+function renderShare() {
+  const grid = document.getElementById('stats-grid');
+  if (!grid) return;
+  const stops = allStops();
+  const totalMiles = BASE.reduce((s,x)=>s+x.miles,0) + customStops.reduce((s,x)=>s+(x.miles||0),0);
+  const photos  = Object.values(journal).reduce((s,j)=>s+getPhotos(j).length,0);
+  const entries = Object.values(journal).filter(j=>j.entry).length;
+  grid.innerHTML = [
+    {v:totalMiles.toLocaleString(), l:'Total Miles'},
+    {v:stops.length,                l:'Stops'},
+    {v:photos,                      l:'Photos'},
+    {v:entries,                     l:'Journal Entries'},
+  ].map(s=>`<div class="stat-card"><div class="stat-val">${s.v}</div><div class="stat-lbl">${s.l}</div></div>`).join('');
+  const tog = document.getElementById('pub-toggle');
+  if (tog) tog.checked = isPublic;
+}
+
+function copyLink() {
+  const v = document.getElementById('share-link').value;
+  navigator.clipboard.writeText(v).then(()=>toast('Link copied!')).catch(()=>toast('Copy failed'));
+}
+
+function savePrivacy() {
+  isPublic = document.getElementById('pub-toggle').checked;
+  localStorage.setItem('rt_public', String(isPublic));
+  toast(isPublic ? 'Trip is now public' : 'Trip is now private');
+}
+
+function exportGMaps() {
+  const stops = allStops();
+  const enc = s => encodeURIComponent(s.name);
+  const origin = enc(stops[0]);
+  const dest   = enc(stops[stops.length-1]);
+  const wp     = stops.slice(1,-1).map(enc).join('/');
+  window.open(`https://www.google.com/maps/dir/${origin}/${wp}/${dest}`, '_blank');
+}
+
+function exportPDF() {
+  toast('Tip: use browser Print → Save as PDF for a keepsake!');
+}
+
+function sendInvite() {
+  const em = document.getElementById('invite-email').value.trim();
+  if (!em || !em.includes('@')) { toast('Enter a valid email'); return; }
+  toast(`Invite sent to ${em}!`);
+  document.getElementById('invite-email').value = '';
+}
+
+// ═══════════════════════════════════════════════
+// HEADER
+// ═══════════════════════════════════════════════
+function updateHeader() {
+  const totalMiles = BASE.reduce((s,x)=>s+x.miles,0);
+  document.getElementById('hdr-sub').textContent =
+    `~${totalMiles.toLocaleString()} miles · ${allStops().length} stops · July–August 2026`;
+}
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+// ═══════════════════════════════════════════════
+// SYNC EVERYTHING
+// ═══════════════════════════════════════════════
+function syncAll() {
+  renderCalendar();
+  renderDailySchedule();
+  renderItinerary();
+  renderStopsList();
+  renderShare();
+  updateHeader();
+  if (mapReady) buildMapLayer();
+}
+
+// ═══════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  migrateJournalPhotos();
+  updateHeader();
+  renderCalendar();
+  renderDailySchedule();
+  renderItinerary();
+  renderStopsList();
+  renderShare();
+  initPhotoUpload();
+  requestAnimationFrame(initMap);
+});
+</script>
+</body>
+</html>
