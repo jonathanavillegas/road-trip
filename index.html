@@ -33,7 +33,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 }
 .sync-badge.live{background:rgba(29,158,117,.4);color:#BBF7D0}
 .sync-badge.warn{background:rgba(186,117,23,.35);color:#FDE68A}
-.photo-btn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .photo-uploading{opacity:.6;pointer-events:none}
 .tab-bar{display:flex;border-top:1px solid rgba(255,255,255,.08)}
 .tab-btn{
@@ -260,11 +259,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .j-date{font-size:.7rem;color:var(--muted)}
 .photo-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .photo-btn{
-  display:flex;align-items:center;gap:5px;padding:5px 11px;
+  position:relative;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;
   border:.5px dashed var(--border);border-radius:6px;background:none;
   color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.72rem;cursor:pointer;transition:all .2s
 }
 .photo-btn:hover{border-color:var(--coral);color:var(--coral)}
+.photo-btn input[type="file"]{
+  position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0
+}
 .photo-gallery{display:flex;flex-wrap:wrap;gap:10px;width:100%;margin-top:4px}
 .photo-item{flex:1 1 140px;max-width:100%;min-width:120px}
 .photo-thumb-wrap{
@@ -617,8 +619,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
   </div>
 </div>
-
-<input type="file" id="photo-file-input" class="visually-hidden-file" accept="image/*,.heic,.heif" multiple>
 
 <div class="toast" id="toast"></div>
 
@@ -1048,7 +1048,6 @@ let journal     = JSON.parse(localStorage.getItem('rt_journal') || '{}');
 
 let map, markers = {}, routeLine, mapReady = false;
 let selectedStopId = null;
-let photoUploadSid = null;
 let cloudDb = null, cloudStorage = null, cloudReady = false;
 let applyingRemote = false, persistTimer = null, cloudInitDone = false;
 
@@ -1954,8 +1953,11 @@ function journalInlineHtml(s) {
        <div class="j-actions"><button type="button" class="j-save" onclick="saveEntry('${s.id}')">Save entry</button></div>`;
 
   return `
-    <div class="photo-row">
-      <label class="photo-btn" for="photo-file-input" onclick="setPhotoStop('${s.id}', event)">📷 Upload photo</label>
+    <div class="photo-row" onclick="event.stopPropagation()">
+      <label class="photo-btn">📷 Upload photo
+        <input type="file" accept="image/*,.heic,.heif" multiple
+          onchange="onPhotoPicked('${s.id}', this, event)">
+      </label>
       <span class="photo-count" id="photo-count-${s.id}">${photos.length ? photos.length + ' photo' + (photos.length > 1 ? 's' : '') : ''}</span>
     </div>
     <div class="photo-gallery" id="photo-gallery-${s.id}"></div>
@@ -2003,12 +2005,11 @@ function savePhotoCaption(sid, idx, caption) {
   persist();
 }
 
-function setPhotoStop(sid, evt) {
-  if (evt) {
-    evt.preventDefault();
-    evt.stopPropagation();
-  }
-  photoUploadSid = sid;
+function onPhotoPicked(sid, input, evt) {
+  if (evt) evt.stopPropagation();
+  const files = input.files;
+  input.value = '';
+  if (files && files.length) handlePhotoFiles(sid, files);
 }
 
 async function handlePhotoFiles(sid, fileList) {
@@ -2097,19 +2098,6 @@ function removePhoto(sid, idx, evt) {
   renderShare();
   toast('Photo deleted');
 }
-
-function initPhotoUpload() {
-  const input = document.getElementById('photo-file-input');
-  if (!input || input.dataset.bound) return;
-  input.dataset.bound = '1';
-  input.addEventListener('change', async () => {
-    const sid = photoUploadSid;
-    const files = input.files;
-    input.value = '';
-    if (sid && files && files.length) await handlePhotoFiles(sid, files);
-  });
-}
-
 
 // ═══════════════════════════════════════════════
 // SHARE
@@ -2217,7 +2205,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderDailySchedule();
   renderItinerary();
   renderStopsList();
-  initPhotoUpload();
   initCloudSync();
   renderShare();
   requestAnimationFrame(initMap);
