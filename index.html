@@ -26,7 +26,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .header-top{display:flex;align-items:baseline;gap:10px;padding-bottom:12px}
 .header-title{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;letter-spacing:-.01em}
 .header-title .arr{color:var(--coral);margin:0 5px}
-.header-sub{font-size:.72rem;color:rgba(255,255,255,.55)}
+.header-sub{font-size:.72rem;color:rgba(255,255,255,.55);display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.sync-badge{
+  font-size:.58rem;padding:2px 8px;border-radius:10px;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.55);white-space:nowrap
+}
+.sync-badge.live{background:rgba(29,158,117,.4);color:#BBF7D0}
+.sync-badge.warn{background:rgba(186,117,23,.35);color:#FDE68A}
+.photo-btn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.photo-uploading{opacity:.6;pointer-events:none}
 .tab-bar{display:flex;border-top:1px solid rgba(255,255,255,.08)}
 .tab-btn{
   flex:1;padding:10px 2px;background:none;border:none;border-bottom:2px solid transparent;
@@ -353,6 +361,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 }
 .share-note{font-size:.78rem;color:var(--muted);line-height:1.45;margin-bottom:10px}
 .share-fine{font-size:.7rem;color:var(--muted);line-height:1.4;margin-top:10px}
+.share-fine code{font-size:.65rem;background:#F3F4F6;padding:1px 4px;border-radius:3px}
 .repo-link{
   display:inline-block;margin-top:8px;font-size:.72rem;color:var(--coral);
   text-decoration:none
@@ -528,7 +537,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="app-header">
   <div class="header-top">
     <div class="header-title">Pittsburgh<span class="arr">→</span>Los Angeles</div>
-    <div class="header-sub" id="hdr-sub">Loading…</div>
+    <div class="header-sub"><span id="hdr-sub">Loading…</span><span class="sync-badge" id="sync-badge">○ Local only</span></div>
   </div>
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="map" onclick="switchTab('map')">🗺 Map & Journal</button>
@@ -568,7 +577,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <button class="copy-btn" onclick="copyLink()">Copy</button>
       </div>
       <button type="button" class="open-site-btn" onclick="openSite()">Open live website</button>
-      <p class="share-fine">Journal entries and photos stay in each person's browser — visitors get the trip planner, not your private notes.</p>
+      <p class="share-fine" id="share-sync-note">When cloud sync is enabled, everyone with this link sees the same journal entries and photos. Set up <code>firebase-config.js</code> once (see repo) to turn on shared sync.</p>
       <a class="repo-link" href="https://github.com/jonathanavillegas/road-trip" target="_blank" rel="noopener">View source on GitHub →</a>
     </div>
     <div class="s-card">
@@ -613,6 +622,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="toast" id="toast"></div>
 
+<script src="firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script>
 // ═══════════════════════════════════════════════
 // DATA
@@ -1028,16 +1041,126 @@ const ITINERARY = [
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
+const CLOUD_TRIP_ID = 'pgh-la-2026';
+
 let customStops = JSON.parse(localStorage.getItem('rt_custom') || '[]');
 let journal     = JSON.parse(localStorage.getItem('rt_journal') || '{}');
 
 let map, markers = {}, routeLine, mapReady = false;
 let selectedStopId = null;
+let photoUploadSid = null;
+let cloudDb = null, cloudStorage = null, cloudReady = false;
+let applyingRemote = false, persistTimer = null, cloudInitDone = false;
+
 const MAX_PHOTOS_PER_STOP = 12;
 
 function allStops() {
   return [...BASE, ...customStops].sort((a,b) => a.date.localeCompare(b.date));
 }
+function hasCloudConfig() {
+  const c = window.RT_FIREBASE_CONFIG;
+  return !!(c && c.apiKey && c.projectId && c.projectId !== 'YOUR_PROJECT_ID');
+}
+
+function updateSyncBadge(state) {
+  const el = document.getElementById('sync-badge');
+  if (!el) return;
+  if (state === 'live') {
+    el.textContent = '● Shared live';
+    el.className = 'sync-badge live';
+    el.title = 'Journal & photos sync for everyone with the link';
+  } else if (state === 'uploading') {
+    el.textContent = '↑ Uploading…';
+    el.className = 'sync-badge warn';
+  } else if (state === 'warn') {
+    el.textContent = '○ Cloud setup needed';
+    el.className = 'sync-badge warn';
+    el.title = 'Add firebase-config.js to share journal & photos';
+  } else {
+    el.textContent = '○ Local only';
+    el.className = 'sync-badge';
+  }
+}
+
+function journalForCloud(src) {
+  const out = {};
+  Object.keys(src || {}).forEach(sid => {
+    const j = src[sid];
+    if (!j) return;
+    const entry = {};
+    if (j.entry) entry.entry = j.entry;
+    if (j.draft) entry.draft = j.draft;
+    const photos = getPhotos(j);
+    if (photos.length) {
+      entry.photos = photos.map(p => p.url
+        ? { url: p.url, caption: p.caption || '' }
+        : { data: p.data, caption: p.caption || '' });
+    }
+    out[sid] = entry;
+  });
+  return out;
+}
+
+async function pushJournalToCloud() {
+  if (!cloudReady || applyingRemote) return;
+  try {
+    await cloudDb.collection('trips').doc(CLOUD_TRIP_ID).set({
+      journal: journalForCloud(journal),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    updateSyncBadge('live');
+  } catch (err) {
+    console.error('Cloud save failed', err);
+    toast('Could not sync to cloud');
+  }
+}
+
+async function initCloudSync() {
+  if (cloudInitDone) return;
+  cloudInitDone = true;
+  if (!hasCloudConfig()) {
+    updateSyncBadge('warn');
+    return;
+  }
+  if (typeof firebase === 'undefined') {
+    updateSyncBadge('warn');
+    return;
+  }
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(window.RT_FIREBASE_CONFIG);
+    cloudDb = firebase.firestore();
+    cloudStorage = firebase.storage();
+    cloudReady = true;
+    cloudDb.collection('trips').doc(CLOUD_TRIP_ID).onSnapshot(snap => {
+      if (!snap.exists) {
+        pushJournalToCloud();
+        return;
+      }
+      const remote = snap.data().journal || {};
+      const localStr = JSON.stringify(journalForCloud(journal));
+      const remoteStr = JSON.stringify(journalForCloud(remote));
+      if (localStr === remoteStr) return;
+      applyingRemote = true;
+      journal = remote;
+      migrateJournalPhotos();
+      try { localStorage.setItem('rt_journal', JSON.stringify(journal)); } catch (_) {}
+      syncAll();
+      applyingRemote = false;
+      updateSyncBadge('live');
+    }, err => {
+      console.error('Cloud listener error', err);
+      updateSyncBadge('warn');
+    });
+    updateSyncBadge('live');
+    renderShare();
+  } catch (err) {
+    console.error('Cloud init failed', err);
+    cloudReady = false;
+    updateSyncBadge('warn');
+    renderShare();
+  }
+}
+
 function persist() {
   localStorage.setItem('rt_custom', JSON.stringify(customStops));
   try {
@@ -1047,6 +1170,10 @@ function persist() {
       toast('Storage full — remove some photos to save more');
     }
     throw err;
+  }
+  if (cloudReady && !applyingRemote) {
+    clearTimeout(persistTimer);
+    persistTimer = setTimeout(pushJournalToCloud, 400);
   }
 }
 
@@ -1711,32 +1838,50 @@ function compressDataUrl(dataUrl, maxW, quality) {
 }
 
 async function fileToPhotoData(file) {
-  if (typeof createImageBitmap === 'function') {
-    try {
-      return await bitmapToJpeg(file, 1200, 0.85);
-    } catch (e) {
-      console.warn('createImageBitmap failed, trying fallback', e);
-    }
-  }
   const raw = await readFileAsDataURL(file);
-  if (typeof raw !== 'string' || !raw.startsWith('data:image')) {
-    throw new Error('Not a valid image file');
-  }
+  if (typeof raw !== 'string') throw new Error('Could not read file');
   try {
-    return await compressDataUrl(raw, 1200, 0.85);
-  } catch {
-    if (/^data:image\/(jpeg|jpg|png|gif|webp);/i.test(raw)) return raw;
-    throw new Error('This format is not supported here. Try JPG or PNG.');
+    return await compressDataUrl(raw, 900, 0.78);
+  } catch (e) {
+    if (/^data:image\/(jpeg|jpg|png|gif|webp|bmp);/i.test(raw)) return raw;
+    throw new Error('Use JPG or PNG, or try another browser for HEIC');
   }
+}
+
+async function dataUrlToBlob(dataUrl) {
+  const res = await fetch(dataUrl);
+  return res.blob();
+}
+
+async function uploadPhotoToCloud(sid, file) {
+  const dataUrl = await fileToPhotoData(file);
+  const blob = await dataUrlToBlob(dataUrl);
+  const path = `trips/${CLOUD_TRIP_ID}/${sid}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const ref = cloudStorage.ref().child(path);
+  await ref.put(blob, { contentType: 'image/jpeg' });
+  return ref.getDownloadURL();
 }
 
 function normalizePhoto(p) {
   if (!p) return null;
-  if (typeof p === 'string' && p.startsWith('data:image')) return { data: p, caption: '' };
-  if (p && typeof p === 'object' && typeof p.data === 'string' && p.data.startsWith('data:image')) {
-    return { data: p.data, caption: p.caption || '' };
+  if (typeof p === 'string') {
+    if (p.startsWith('data:image') || p.startsWith('blob:')) return { data: p, caption: '' };
+    if (p.startsWith('http')) return { url: p, caption: '' };
+  }
+  if (p && typeof p === 'object') {
+    const cap = p.caption || '';
+    if (typeof p.url === 'string' && (p.url.startsWith('http') || p.url.startsWith('blob:'))) {
+      return { url: p.url, caption: cap };
+    }
+    if (typeof p.data === 'string' && (p.data.startsWith('data:image') || p.data.startsWith('blob:'))) {
+      return { data: p.data, caption: cap };
+    }
   }
   return null;
+}
+
+function photoSrc(photo) {
+  return (photo && (photo.url || photo.data)) || '';
 }
 
 function getPhotos(j) {
@@ -1766,7 +1911,7 @@ function mountPhotoGallery(sid) {
     const img = document.createElement('img');
     img.className = 'photo-thumb-img';
     img.alt = photo.caption || 'Trip photo';
-    img.src = photo.data;
+    img.src = photoSrc(photo);
     img.onerror = () => { wrap.innerHTML = '<span class="photo-broken">Preview unavailable</span>'; };
     const rm = document.createElement('button');
     rm.type = 'button';
@@ -1810,7 +1955,7 @@ function journalInlineHtml(s) {
 
   return `
     <div class="photo-row">
-      <button type="button" class="photo-btn" onclick="pickPhotos('${s.id}', event)">📷 Upload photo</button>
+      <label class="photo-btn" for="photo-file-input" onclick="setPhotoStop('${s.id}', event)">📷 Upload photo</label>
       <span class="photo-count" id="photo-count-${s.id}">${photos.length ? photos.length + ' photo' + (photos.length > 1 ? 's' : '') : ''}</span>
     </div>
     <div class="photo-gallery" id="photo-gallery-${s.id}"></div>
@@ -1858,22 +2003,12 @@ function savePhotoCaption(sid, idx, caption) {
   persist();
 }
 
-function pickPhotos(sid, evt) {
+function setPhotoStop(sid, evt) {
   if (evt) {
     evt.preventDefault();
     evt.stopPropagation();
   }
-  const input = document.getElementById('photo-file-input');
-  if (!input) return;
-  input.value = '';
-  const onChange = async (e) => {
-    input.removeEventListener('change', onChange);
-    const files = e.target.files;
-    input.value = '';
-    await handlePhotoFiles(sid, files);
-  };
-  input.addEventListener('change', onChange, { once: true });
-  input.click();
+  photoUploadSid = sid;
 }
 
 async function handlePhotoFiles(sid, fileList) {
@@ -1895,18 +2030,29 @@ async function handlePhotoFiles(sid, fileList) {
 
   const photos = [...existing];
   let added = 0;
+  const useCloud = cloudReady && cloudStorage;
+  if (useCloud) updateSyncBadge('uploading');
+
   for (const file of files) {
     try {
-      const data = await fileToPhotoData(file);
-      photos.push({ data, caption: '' });
+      if (useCloud) {
+        const url = await uploadPhotoToCloud(sid, file);
+        photos.push({ url, caption: '' });
+      } else {
+        const data = await fileToPhotoData(file);
+        photos.push({ data, caption: '' });
+      }
       added++;
     } catch (err) {
       console.error('Photo upload failed:', err);
-      toast(`Could not add ${file.name || 'photo'}`);
+      toast(err.message || `Could not add ${file.name || 'photo'}`);
     }
   }
 
-  if (!added) return;
+  if (!added) {
+    if (useCloud) updateSyncBadge('live');
+    return;
+  }
 
   journal[sid].photos = photos;
   selectedStopId = sid;
@@ -1921,6 +2067,7 @@ async function handlePhotoFiles(sid, fileList) {
 
   renderStopsList();
   renderShare();
+  if (useCloud) updateSyncBadge('live');
   toast(added === 1 ? 'Photo added ✓' : `${added} photos added ✓`);
 
   const item = document.getElementById('stop-item-' + sid);
@@ -1936,6 +2083,12 @@ function removePhoto(sid, idx, evt) {
   const photos = getPhotos(journal[sid]);
   if (!photos[idx]) return;
   if (!confirm('Delete this photo?')) return;
+  const removed = photos[idx];
+  if (removed.url && cloudStorage) {
+    try {
+      cloudStorage.refFromURL(removed.url).delete().catch(() => {});
+    } catch (_) {}
+  }
   photos.splice(idx, 1);
   journal[sid].photos = photos;
   if (!photos.length && !journal[sid].entry && !journal[sid].draft) delete journal[sid];
@@ -1946,7 +2099,15 @@ function removePhoto(sid, idx, evt) {
 }
 
 function initPhotoUpload() {
-  /* file picker wired per-upload in pickPhotos() */
+  const input = document.getElementById('photo-file-input');
+  if (!input || input.dataset.bound) return;
+  input.dataset.bound = '1';
+  input.addEventListener('change', async () => {
+    const sid = photoUploadSid;
+    const files = input.files;
+    input.value = '';
+    if (sid && files && files.length) await handlePhotoFiles(sid, files);
+  });
 }
 
 
@@ -1970,6 +2131,12 @@ function renderShare() {
   ].map(s=>`<div class="stat-card"><div class="stat-val">${s.v}</div><div class="stat-lbl">${s.l}</div></div>`).join('');
   const link = document.getElementById('share-link');
   if (link) link.value = SITE_URL;
+  const note = document.getElementById('share-sync-note');
+  if (note) {
+    note.textContent = cloudReady
+      ? 'Journal entries and photos sync live for everyone with this link.'
+      : 'To share journal & photos with everyone: add your Firebase config to firebase-config.js, deploy Firestore + Storage rules, and refresh.';
+  }
 }
 
 function copyLink() {
@@ -2050,8 +2217,9 @@ document.addEventListener('DOMContentLoaded', () => {
   renderDailySchedule();
   renderItinerary();
   renderStopsList();
-  renderShare();
   initPhotoUpload();
+  initCloudSync();
+  renderShare();
   requestAnimationFrame(initMap);
 });
 </script>
