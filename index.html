@@ -83,6 +83,105 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* ── Schedule ── */
 .daily-sched{padding:0 0 72px}
+.sched-with-progress{
+  display:grid;grid-template-columns:minmax(96px,25%) 1fr;gap:0 14px;
+  align-items:start
+}
+.trip-progress-col{position:relative;align-self:stretch;min-width:0}
+.trip-progress-sticky{
+  position:sticky;top:108px;
+  height:calc(100vh - 120px);
+  padding:10px 8px 10px 12px
+}
+.trip-progress-rail{position:relative;height:100%;width:100%}
+.trip-progress-endpoints{
+  position:absolute;left:0;right:0;top:0;bottom:0;
+  pointer-events:none;font-size:.62rem;font-weight:700;
+  letter-spacing:.03em;color:var(--muted);text-align:center
+}
+.trip-progress-ep{position:absolute;left:0;right:0;line-height:1.15}
+.trip-progress-ep-top{top:0;color:var(--blue)}
+.trip-progress-ep-bot{bottom:0;color:var(--green)}
+.trip-progress-track{
+  position:absolute;left:50%;transform:translateX(-50%);
+  top:26px;bottom:26px;width:8px;
+  background:#E8E0D5;border-radius:4px;overflow:hidden
+}
+.trip-progress-fill{
+  position:absolute;left:0;top:0;width:100%;height:0%;
+  background:linear-gradient(180deg,#2563EB 0%,#7C3AED 22%,#E11D48 48%,#EA580C 68%,#0E7490 82%,#047857 100%);
+  border-radius:4px;transition:height .06s linear
+}
+.trip-progress-markers{
+  position:absolute;left:0;right:0;top:26px;bottom:26px;z-index:2
+}
+.trip-progress-marker{
+  position:absolute;left:0;right:0;transform:translateY(-50%);
+  display:grid;grid-template-columns:1fr 12px 1fr;align-items:center;gap:5px
+}
+.trip-progress-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  background:var(--card);border:2.5px solid #C4B8AC;grid-column:2;justify-self:center;
+  transition:border-color .15s,background .15s,transform .15s
+}
+.trip-progress-marker.passed .trip-progress-dot{
+  border-color:var(--coral);background:var(--coral);transform:scale(1.1)
+}
+.trip-progress-marker-start .trip-progress-dot{
+  width:12px;height:12px;border-color:var(--blue);background:var(--blue)
+}
+.trip-progress-mi{
+  font-size:.58rem;font-weight:700;color:var(--muted);line-height:1.1;
+  text-align:right;grid-column:1;padding-right:2px
+}
+.trip-progress-marker.passed .trip-progress-mi{color:var(--text)}
+.trip-progress-marker-compact .trip-progress-mi{visibility:hidden}
+.trip-progress-name{
+  font-size:.58rem;font-weight:500;color:var(--text);line-height:1.15;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;grid-column:3;
+  padding-left:2px
+}
+.trip-progress-marker.passed .trip-progress-name{font-weight:600}
+@media(max-width:640px){
+  .sched-with-progress{grid-template-columns:minmax(72px,22%) 1fr;gap:0 8px}
+  .trip-progress-endpoints{font-size:.54rem}
+  .trip-progress-mi,.trip-progress-name{font-size:.5rem}
+}
+@media(max-width:480px){
+  .sched-with-progress{grid-template-columns:minmax(64px,20%) 1fr;gap:0 6px}
+  .trip-progress-name{display:none}
+  .trip-progress-marker.passed .trip-progress-name,
+  .trip-progress-marker:hover .trip-progress-name{display:block}
+}
+.stay-group{
+  display:grid;grid-template-columns:28px 1fr;gap:0 6px;
+  padding:4px 0 8px;--stay-color:#9CA3AF
+}
+.stay-group-cards{min-width:0}
+.stay-group-cards .day-card{margin:10px 16px 10px 0}
+.stay-bracket-col{
+  position:relative;display:flex;flex-direction:column;align-items:center;
+  padding:18px 0 18px 10px;min-height:100%
+}
+.stay-bracket-line{
+  flex:1;width:4px;min-height:32px;border-radius:3px;
+  background:var(--stay-color);position:relative
+}
+.stay-bracket-line::before,.stay-bracket-line::after{
+  content:'';position:absolute;left:0;height:4px;width:14px;
+  background:var(--stay-color);border-radius:2px
+}
+.stay-bracket-line::before{top:0}
+.stay-bracket-line::after{bottom:0}
+.stay-bracket-label{
+  position:absolute;top:14px;left:0;
+  writing-mode:vertical-rl;transform:rotate(180deg);
+  font-size:.52rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--stay-color);white-space:nowrap;
+  max-height:88px;overflow:hidden;line-height:1.2
+}
+.stay-group-solo .stay-bracket-line{min-height:24px}
+.stay-group-solo .stay-bracket-label{display:none}
 .day-card{
   margin:12px 16px;background:var(--card);border:.5px solid var(--border);
   border-radius:12px;overflow:hidden;box-shadow:var(--shadow);
@@ -561,7 +660,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div id="tab-schedule" class="tab-pane">
   <div id="cal-section" class="cal-section"></div>
   <div class="itin-divider">Your Day at a Glance</div>
-  <div id="daily-schedule" class="daily-sched"></div>
+  <div class="sched-with-progress" id="sched-with-progress">
+    <div class="trip-progress-col" aria-hidden="true">
+      <div class="trip-progress-sticky">
+        <div class="trip-progress-rail">
+          <div class="trip-progress-endpoints">
+            <span class="trip-progress-ep trip-progress-ep-top">Pittsburgh</span>
+            <span class="trip-progress-ep trip-progress-ep-bot">Los Angeles</span>
+          </div>
+          <div class="trip-progress-track"><div class="trip-progress-fill" id="trip-progress-fill"></div></div>
+          <div class="trip-progress-markers" id="trip-progress-markers"></div>
+        </div>
+      </div>
+    </div>
+    <div id="daily-schedule" class="daily-sched"></div>
+  </div>
   <div class="itin-divider">Trip Phases (expand for tips)</div>
   <section id="itinerary"><div id="itinerary-content"></div></section>
 </div>
@@ -636,12 +749,12 @@ const BASE = [
   {id:'ozarks',      name:'Ozark Scenic Riverways, MO',    lat:36.9934,  lng:-91.0137,  type:'park',        date:'2026-07-14', miles:480, note:'Float the crystal-clear Current River'},
   {id:'kansascity',  name:'Kansas City, MO',               lat:39.0997,  lng:-94.5786,  type:'city',        date:'2026-07-16', miles:160, note:'World-class BBQ + rest day'},
   {id:'denver',      name:'Denver, CO',                    lat:39.7392,  lng:-104.9903, type:'city',        date:'2026-07-17', miles:600, note:'Gateway to the Rockies'},
-  {id:'rmnp',        name:'Rocky Mountain NP, CO',         lat:40.3428,  lng:-105.6836, type:'park',        date:'2026-07-19', miles:80,  note:'Trail Ridge Road + Emerald Lake'},
+  {id:'rmnp',        name:'Rocky Mountain NP, CO',         lat:40.3428,  lng:-105.6836, type:'park',        date:'2026-07-19', miles:80,  note:'Moraine Park camp, Bear Lake hikes'},
   {id:'moab',        name:'Moab, UT',                      lat:38.5733,  lng:-109.5498, type:'city',        date:'2026-07-21', miles:350, note:'Base camp for Utah parks'},
   {id:'arches',      name:'Arches National Park, UT',      lat:38.7331,  lng:-109.5925, type:'park',        date:'2026-07-22', miles:15,  note:'Delicate Arch + Devils Garden'},
   {id:'canyonlands', name:'Canyonlands National Park, UT', lat:38.2505,  lng:-109.8208, type:'park',        date:'2026-07-23', miles:25,  note:'Mesa Arch sunrise + Dead Horse Point'},
-  {id:'grandcanyon', name:'Grand Canyon, AZ',              lat:36.0544,  lng:-112.1401, type:'park',        date:'2026-07-24', miles:265, note:'South Rim — stay on the rim in July'},
-  {id:'zion',        name:'Zion National Park, UT',        lat:37.2982,  lng:-113.0263, type:'park',        date:'2026-07-26', miles:165, note:"Angels Landing + The Narrows"},
+  {id:'grandcanyon', name:'Grand Canyon, AZ',              lat:36.0544,  lng:-112.1401, type:'park',        date:'2026-07-24', miles:265, note:'South Rim — Mather Campground'},
+  {id:'zion',        name:'Zion National Park, UT',        lat:37.2982,  lng:-113.0263, type:'park',        date:'2026-07-26', miles:165, note:'Watchman Campground, Angels Landing + Narrows'},
   {id:'lasvegas',    name:'Las Vegas, NV',                 lat:36.1699,  lng:-115.1398, type:'city',        date:'2026-07-28', miles:160, note:'Pit stop: AC, food, Valley of Fire'},
   {id:'joshuatree',  name:'Joshua Tree NP, CA',            lat:33.8734,  lng:-115.9010, type:'park',        date:'2026-07-29', miles:205, note:'Skull Rock + legendary dark-sky stargazing'},
   {id:'losangeles',  name:'Los Angeles, CA',               lat:34.0522,  lng:-118.2437, type:'destination', date:'2026-07-31', miles:130, note:'New home!'},
@@ -655,9 +768,9 @@ const SCHED = [
   {date:'2026-07-16',type:'drive',    title:'Ozarks → Kansas City',           detail:'Short hop to KC for BBQ and rest',                   miles:160, sid:'ozarks'},
   {date:'2026-07-17',type:'drive',    title:'Kansas City → Denver',           detail:'Long push across the Great Plains',                  miles:600, sid:'kansascity'},
   {date:'2026-07-18',type:'city',     title:'Denver',                         detail:'Mile High City — rest and resupply',                 miles:0,   sid:'denver'},
-  {date:'2026-07-19',type:'drive',    title:'Denver → Rocky Mountain NP',     detail:'Drive up to Estes Park, Trail Ridge Road',           miles:80,  sid:'denver'},
-  {date:'2026-07-20',type:'park',     title:'Rocky Mountain NP Day 2',        detail:'Emerald Lake, Sky Pond, Bear Lake loop',             miles:0,   sid:'rmnp'},
-  {date:'2026-07-21',type:'drive',    title:'RMNP → Moab, UT',                detail:'Cross into Utah — canyon country begins',            miles:350, sid:'rmnp'},
+  {date:'2026-07-19',type:'drive',    title:'Denver → Moraine Park',         detail:'Estes Park resupply, camp at Moraine Park',            miles:80,  sid:'denver'},
+  {date:'2026-07-20',type:'park',     title:'Rocky Mountain NP',            detail:'Bear Lake shuttle, Emerald Lake, Sky Pond',          miles:0,   sid:'rmnp'},
+  {date:'2026-07-21',type:'drive',    title:'Estes Park → Moab',            detail:'I-70 through Colorado, arrive Moab evening',         miles:350, sid:'rmnp'},
   {date:'2026-07-22',type:'park',     title:'Arches National Park',           detail:'Delicate Arch, Devils Garden, Landscape Arch',       miles:15,  sid:'arches'},
   {date:'2026-07-23',type:'park',     title:'Canyonlands + Dead Horse Point', detail:'Mesa Arch sunrise, Island in the Sky',               miles:25,  sid:'canyonlands'},
   {date:'2026-07-24',type:'drive',    title:'Moab → Grand Canyon',            detail:'Drive south through Navajo Nation to the South Rim', miles:265, sid:'moab'},
@@ -740,39 +853,54 @@ const DAILY_PLANS = {
       {type:'rest',start:'9:00 AM',end:'12:00 PM',label:'Slow morning',ideas:['Sleep in, coffee, laundry','REI or outdoor store if you need gear']},
       {type:'explore',start:'12:30 PM',end:'4:30 PM',label:'Light Denver exploring',ideas:['Red Rocks Amphitheatre (short visit)','Washington Park walk','Union Station food hall']},
       {type:'meal',start:'5:00 PM',end:'6:30 PM',label:'Dinner'},
-      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Pack for Estes Park tomorrow',ideas:['Confirm timed-entry permit for RMNP on recreation.gov']}
+      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Pack for Moraine Park tomorrow',ideas:['Confirm Moraine Park Campground reservation — show at gate for park entry (no separate timed-entry permit needed)','Stock camp groceries in Denver or plan Estes Park stop tomorrow']}
     ]
   },
   '2026-07-19':{
-    title:'Denver → Rocky Mountain NP',
-    sleep:{place:'Estes Park, CO',note:'Gateway town to RMNP — book 2 nights'},
+    title:'Denver → Moraine Park Campground',
+    sleep:{place:'Moraine Park Campground, RMNP',note:'Camping reservation required — show at gate for park entry'},
     blocks:[
-      {type:'drive',start:'8:00 AM',end:'9:30 AM',label:'Drive to Estes Park',detail:'~80 mi · short hop up into the Rockies'},
-      {type:'drive',start:'10:00 AM',end:'1:00 PM',label:'Trail Ridge Road scenic drive',detail:'Highest continuous paved road in the US (12,183 ft) — go slow, enjoy views'},
-      {type:'meal',start:'1:00 PM',end:'2:00 PM',label:'Lunch in Estes Park'},
-      {type:'explore',start:'2:30 PM',end:'6:00 PM',label:'Afternoon hike',ideas:['Bear Lake Loop — easy 0.9 mi wildflowers','Emerald Lake Trail start if you have energy (3.6 mi)','Elk spotting near Kawuneeche Valley']},
-      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Estes Park evening',ideas:['Dinner in town, early night for altitude']}
+      {type:'drive',start:'10:00 AM',end:'11:30 AM',label:'Drive to Estes Park',detail:'~80 mi from Denver'},
+      {type:'meal',start:'11:30 AM',end:'1:00 PM',label:'Estes Park resupply',ideas:['Fuel, lunch, camp groceries']},
+      {type:'explore',start:'1:00 PM',end:'1:30 PM',label:'Check in at Moraine Park Campground',detail:'Camping reservation = park entry'},
+      {type:'rest',start:'1:30 PM',end:'2:30 PM',label:'Set up camp'},
+      {type:'explore',start:'2:30 PM',end:'5:30 PM',label:'Cub Lake Trail',detail:'4.6 mi round trip from campground'},
+      {type:'rest',start:'5:30 PM',end:'6:00 PM',label:'Back at camp'},
+      {type:'meal',start:'6:00 PM',end:'7:30 PM',label:'Camp dinner'},
+      {type:'rest',start:'7:30 PM',end:'9:00 PM',label:'Evening at camp',ideas:['Campfire, stargazing, prep for early start']},
+      {type:'rest',start:'9:00 PM',end:'5:00 AM',label:'Early night'}
     ]
   },
   '2026-07-20':{
-    title:'Rocky Mountain NP — full day',
-    sleep:{place:'Estes Park, CO',note:'Same lodging — night 2 of 2',continues:true},
+    title:'Rocky Mountain NP — Bear Lake & Sky Pond',
+    sleep:{place:'Saddle & Surrey Motel, Estes Park',note:'After breaking camp at Moraine Park'},
     blocks:[
-      {type:'explore',start:'6:30 AM',end:'12:30 PM',label:'Morning alpine hikes',ideas:['Emerald Lake Trail — 3.6 mi, three stacked lakes','Sky Pond via Glacier Gorge — 8.8 mi if you’re up for it','Alpine lakes are cold but stunning — bring layers']},
-      {type:'meal',start:'12:30 PM',end:'1:30 PM',label:'Lunch'},
-      {type:'explore',start:'2:00 PM',end:'5:00 PM',label:'Afternoon free time',ideas:['Finish a trail you skipped','Estes Park shopping or coffee','Scenic pullouts you missed on Trail Ridge']},
-      {type:'rest',start:'6:00 PM',end:'9:00 PM',label:'Pack for Moab',ideas:['Long drive tomorrow — prep snacks and water']}
+      {type:'rest',start:'5:00 AM',end:'6:00 AM',label:'Break camp',ideas:['Pack up completely before leaving Moraine Park']},
+      {type:'drive',start:'6:00 AM',end:'6:20 AM',label:'Drive to Glacier Basin Park & Ride',detail:'~10 min from Moraine Park'},
+      {type:'explore',start:'6:20 AM',end:'6:45 AM',label:'Bear Lake Shuttle',detail:'Runs every 10–15 min from 6:30 AM'},
+      {type:'explore',start:'6:45 AM',end:'10:00 AM',label:'Bear Lake to Emerald Lake',detail:'3.6 mi — Nymph, Dream, Emerald lakes'},
+      {type:'explore',start:'10:00 AM',end:'1:00 PM',label:'Sky Pond Trail',detail:'8.6 mi round trip from Glacier Gorge trailhead'},
+      {type:'meal',start:'1:00 PM',end:'2:00 PM',label:'Lunch'},
+      {type:'explore',start:'2:00 PM',end:'4:00 PM',label:'Afternoon free time',ideas:['Extra trails, scenic pullouts, Alpine Visitor Center']},
+      {type:'explore',start:'4:30 PM',end:'5:00 PM',label:'Shuttle back to Park & Ride'},
+      {type:'drive',start:'5:00 PM',end:'5:30 PM',label:'Drive through Estes Park'},
+      {type:'rest',start:'6:00 PM',end:'6:30 PM',label:'Check in at Saddle & Surrey Motel'},
+      {type:'meal',start:'7:00 PM',end:'8:30 PM',label:'Dinner in Estes Park'},
+      {type:'rest',start:'9:00 PM',end:'5:00 AM',label:'Sleep'}
     ]
   },
   '2026-07-21':{
-    title:'Rocky Mountain NP → Moab',
+    title:'Estes Park → Moab',
     sleep:{place:'Moab, UT',note:'Base camp for Arches & Canyonlands — book 3 nights'},
     blocks:[
-      {type:'drive',start:'7:00 AM',end:'12:30 PM',label:'Drive to Moab',detail:'~350 mi · I-70 W through Colorado'},
-      {type:'explore',start:'11:00 AM',end:'11:45 AM',label:'Optional detour',ideas:['Colorado National Monument — 20 min off I-70, canyon overlooks']},
-      {type:'meal',start:'1:00 PM',end:'2:00 PM',label:'Lunch near Moab'},
-      {type:'explore',start:'3:00 PM',end:'6:30 PM',label:'Afternoon cooldown',ideas:['Colorado River at Hittle Bottom — swim & rope swings','Watch canyon walls turn orange at sunset']},
-      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Moab evening',ideas:['Dinner on Main St — early night; hike at dawn tomorrow']}
+      {type:'meal',start:'7:30 AM',end:'8:00 AM',label:'Breakfast, pack up',ideas:['Check out of Saddle & Surrey Motel']},
+      {type:'drive',start:'8:00 AM',end:'9:30 AM',label:'Drive to I-70',detail:'South from Estes Park'},
+      {type:'rest',start:'9:30 AM',end:'10:00 AM',label:'Fuel stop',ideas:['Denver / I-70 junction if needed']},
+      {type:'drive',start:'10:00 AM',end:'2:30 PM',label:'I-70 through the Rockies',detail:'Eisenhower Tunnel, Vail Pass, Glenwood Canyon'},
+      {type:'meal',start:'2:30 PM',end:'3:00 PM',label:'Lunch in Grand Junction'},
+      {type:'drive',start:'3:00 PM',end:'5:30 PM',label:'Drive into Utah',detail:'~350 mi total today'},
+      {type:'rest',start:'5:30 PM',end:'6:00 PM',label:'Check in at Moab'},
+      {type:'meal',start:'7:00 PM',end:'8:30 PM',label:'Dinner in Moab'}
     ]
   },
   '2026-07-22':{
@@ -791,55 +919,59 @@ const DAILY_PLANS = {
     blocks:[
       {type:'explore',start:'5:00 AM',end:'9:30 AM',label:'Sunrise loop',ideas:['Mesa Arch — 0.5 mi, arrive before sunrise for the glow','Grand View Point — 2 mi dramatic overlook','Dead Horse Point — Colorado River horseshoe view']},
       {type:'rest',start:'10:00 AM',end:'2:00 PM',label:'Heat break & lunch',detail:'All Canyonlands hiking done before 9am'},
-      {type:'explore',start:'3:00 PM',end:'6:00 PM',label:'Afternoon free time in Moab',ideas:['River swim at Lions Park','Gear shop, ice cream on Main St','Pack for Grand Canyon drive tomorrow']},
+      {type:'explore',start:'3:00 PM',end:'6:00 PM',label:'Afternoon free time in Moab',ideas:['River swim at Lions Park','Gear shop, ice cream on Main St','Pack for Grand Canyon — Mather Campground July 24–26']},
       {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Last Moab night'}
     ]
   },
   '2026-07-24':{
     title:'Moab → Grand Canyon South Rim',
-    sleep:{place:'Grand Canyon Village or Tusayan, AZ',note:'On the rim or 7 mi south in Tusayan — book 2 nights'},
+    sleep:{place:'Mather Campground, Grand Canyon',note:'South Rim camping — reservation required'},
     blocks:[
       {type:'drive',start:'7:00 AM',end:'11:00 AM',label:'Drive to the South Rim',detail:'~265 mi · through Navajo Nation — fill gas when you can'},
-      {type:'meal',start:'11:30 AM',end:'12:30 PM',label:'Lunch at the rim'},
-      {type:'explore',start:'1:00 PM',end:'6:00 PM',label:'First look at the canyon',ideas:['Mather Point — iconic first view','Rim Trail — flat, walk any section you want','Yavapai Point for sunset']},
-      {type:'rest',start:'7:30 PM',end:'9:00 PM',label:'Rim evening',ideas:['Don’t descend far in July heat — rim views are enough']}
+      {type:'explore',start:'11:30 AM',end:'12:30 PM',label:'Check in at Mather Campground'},
+      {type:'meal',start:'12:30 PM',end:'1:30 PM',label:'Lunch at the rim'},
+      {type:'explore',start:'2:00 PM',end:'6:00 PM',label:'First look at the canyon',ideas:['Mather Point — first view near campground','Rim Trail — flat, walk any section you want','Yavapai Point for sunset']},
+      {type:'rest',start:'7:30 PM',end:'9:00 PM',label:'Evening at camp',ideas:['Do not descend far in July heat — rim views are enough']}
     ]
   },
   '2026-07-25':{
     title:'Grand Canyon — full rim day',
-    sleep:{place:'Grand Canyon Village or Tusayan, AZ',note:'Same lodging — night 2 of 2',continues:true},
+    sleep:{place:'Mather Campground, Grand Canyon',note:'Same campsite — night 2 of 2',continues:true},
     blocks:[
       {type:'explore',start:'6:00 AM',end:'11:00 AM',label:'Morning rim hikes',ideas:['Bright Angel to 1.5 Mile Resthouse only — 3 mi, morning only','Rim Trail east toward Yaki Point','Desert View Drive — 25 mi, Navajo Watchtower']},
       {type:'meal',start:'11:30 AM',end:'12:30 PM',label:'Lunch'},
-      {type:'rest',start:'12:30 PM',end:'3:00 PM',label:'Midday rest',detail:'Rim is 7,000 ft — manageable, but avoid inner canyon (110°F+)'},
+      {type:'rest',start:'12:30 PM',end:'3:00 PM',label:'Midday rest',detail:'Rim is 7,000 ft — avoid inner canyon (110°F+)'},
       {type:'explore',start:'4:00 PM',end:'7:30 PM',label:'Afternoon & sunset',ideas:['Hopi Point or Powell Point for sunset','Visitor center exhibits','Pack for Zion tomorrow']}
     ]
   },
   '2026-07-26':{
     title:'Grand Canyon → Zion',
-    sleep:{place:'Springdale, UT',note:'At Zion’s front door — book 2 nights'},
+    sleep:{place:'Watchman Campground, Zion NP',note:'In-park camping — reservation required'},
     blocks:[
+      {type:'rest',start:'6:00 AM',end:'7:30 AM',label:'Break camp at Mather Campground',ideas:['Pack up completely before leaving Grand Canyon']},
       {type:'drive',start:'8:00 AM',end:'10:30 AM',label:'Drive to Zion',detail:'~165 mi · Utah canyon country'},
-      {type:'explore',start:'11:00 AM',end:'1:00 PM',label:'First canyon views',ideas:['Canyon Overlook Trail — 1 mi arch-framed view','Shuttle into the canyon if running']},
-      {type:'meal',start:'1:00 PM',end:'2:00 PM',label:'Lunch in Springdale'},
+      {type:'explore',start:'11:00 AM',end:'12:00 PM',label:'Check in at Watchman Campground'},
+      {type:'explore',start:'12:00 PM',end:'1:00 PM',label:'First canyon views',ideas:['Canyon Overlook Trail — 1 mi','Shuttle into the canyon if running']},
+      {type:'meal',start:'1:00 PM',end:'2:00 PM',label:'Lunch near park entrance'},
       {type:'explore',start:'2:30 PM',end:'6:30 PM',label:'Afternoon hike',ideas:['Emerald Pools — shaded 1.3–3 mi','River walk in the canyon bottom','Scout Angels Landing permit for tomorrow']},
-      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Springdale evening'}
+      {type:'rest',start:'7:00 PM',end:'9:00 PM',label:'Evening at camp'}
     ]
   },
   '2026-07-27':{
     title:'Zion — big hike day',
-    sleep:{place:'Springdale, UT',note:'Same lodging — night 2 of 2',continues:true},
+    sleep:{place:'Watchman Campground, Zion NP',note:'Same campsite — night 2 of 2',continues:true},
     blocks:[
       {type:'explore',start:'6:00 AM',end:'11:30 AM',label:'Morning adventure',ideas:['Angels Landing — 5.4 mi, permit required, chain section','Or Emerald Pools if no permit']},
       {type:'meal',start:'12:00 PM',end:'1:00 PM',label:'Lunch'},
-      {type:'explore',start:'1:30 PM',end:'5:30 PM',label:'The Narrows (best when hottest)',ideas:['Bottom-up Narrows — wade the Virgin River through the slot canyon','Rent shoes and dry bag in Springdale','Virgin River cooldown anywhere in the canyon']},
-      {type:'rest',start:'6:00 PM',end:'9:00 PM',label:'Recover & pack for Vegas'}
+      {type:'explore',start:'1:30 PM',end:'5:30 PM',label:'The Narrows',ideas:['Bottom-up Narrows — wade the Virgin River through the slot canyon','Rent shoes and dry bag in Springdale','Virgin River cooldown anywhere in the canyon']},
+      {type:'rest',start:'6:00 PM',end:'9:00 PM',label:'Evening at camp',ideas:['Pack for Vegas tomorrow']}
     ]
   },
   '2026-07-28':{
     title:'Zion → Las Vegas',
     sleep:{place:'Las Vegas, NV',note:'Strip or off-Strip hotel — one night of AC and comfort'},
     blocks:[
+      {type:'rest',start:'6:00 AM',end:'7:30 AM',label:'Break camp at Watchman Campground'},
       {type:'drive',start:'8:00 AM',end:'10:30 AM',label:'Drive to Las Vegas',detail:'~160 mi'},
       {type:'explore',start:'9:00 AM',end:'10:30 AM',label:'Optional morning detour',ideas:['Valley of Fire State Park — 50 min off route, red rock at dawn']},
       {type:'explore',start:'11:00 AM',end:'3:00 PM',label:'Vegas pit stop',ideas:['Lake Mead swim at Boulder Beach if levels allow','Restock water, sunscreen, snacks']},
@@ -879,6 +1011,20 @@ const DAILY_PLANS = {
     ]
   },
 };
+
+// Location clusters for bracket bars in "Your Day at a Glance" (consecutive same id = one bracket)
+const STAY_CLUSTERS = [
+  { id:'nrg',     label:'New River Gorge',  color:'#15803D', from:'2026-07-12', to:'2026-07-13' },
+  { id:'ozarks',  label:'Ozarks',           color:'#92400E', from:'2026-07-14', to:'2026-07-15' },
+  { id:'kc',      label:'Kansas City',      color:'#7C3AED', from:'2026-07-16', to:'2026-07-16' },
+  { id:'rockies', label:'Denver & Rockies', color:'#1D4ED8', from:'2026-07-17', to:'2026-07-20' },
+  { id:'moab',    label:'Moab',             color:'#BE123C', from:'2026-07-21', to:'2026-07-23' },
+  { id:'gc',      label:'Grand Canyon',     color:'#EA580C', from:'2026-07-24', to:'2026-07-25' },
+  { id:'zion',    label:'Zion',             color:'#0E7490', from:'2026-07-26', to:'2026-07-27' },
+  { id:'vegas',   label:'Las Vegas',        color:'#C026D3', from:'2026-07-28', to:'2026-07-28' },
+  { id:'jtree',   label:'Joshua Tree',      color:'#A16207', from:'2026-07-29', to:'2026-07-30' },
+  { id:'la',      label:'Los Angeles',      color:'#047857', from:'2026-07-31', to:'2026-07-31' },
+];
 
 const WEEKS = [
   {label:'Phase 1 — Appalachia',         start:'2026-07-12', end:'2026-07-13'},
@@ -934,29 +1080,48 @@ const ITINERARY = [
       stay:'Denver, CO', heat:null,
       tip:'Break it in Salina, KS (~4 hrs from KC) if you want an easier two-day split.'
     },
-    {label:'Days 6–7', from:'Denver, CO', to:'Rocky Mountain NP, CO', drive:'1.5 hrs · 80 mi', date:'2026-07-18',
+    {label:'Day 6', from:'Denver, CO', to:'Denver, CO', drive:'Rest day', date:'2026-07-18',
       activities:[
-        {icon:'🥾', text:'Emerald Lake Trail — 3.6 mi, stunning alpine basin with three stacked lakes'},
-        {icon:'🥾', text:'Sky Pond via Glacier Gorge — 8.8 mi, technical scramble with an incredible reward'},
-        {icon:'🥾', text:'Bear Lake Loop — 0.9 mi, easy wildflower walk'},
-        {icon:'🚗', text:'Trail Ridge Road scenic drive — highest continuous paved road in the US (12,183 ft)'},
-        {icon:'🦌', text:'Elk and moose near Kawuneeche Valley (west side of park)'},
+        {icon:'😴', text:'Slow morning — laundry, REI, hydrate for altitude'},
+        {icon:'🏙️', text:'Light Denver exploring — Red Rocks, Washington Park, Union Station'},
+        {icon:'⛺', text:'Confirm Moraine Park Campground reservation'},
       ],
-      stay:'Estes Park, CO (2 nights)', heat:null,
-      tip:'Alpine lakes are too cold for swimming but breathtakingly clear. Timed-entry permits required — book on recreation.gov.'
+      stay:'Denver, CO', heat:null,
+      tip:'Camping reservation at Moraine Park gate is park entry. No separate timed-entry permit needed.'
+    },
+    {label:'Day 7', from:'Denver, CO', to:'Moraine Park Campground, RMNP', drive:'1.5 hrs · 80 mi', date:'2026-07-19',
+      activities:[
+        {icon:'🏘️', text:'Estes Park — fuel, lunch, camp groceries'},
+        {icon:'⛺', text:'Check in at Moraine Park Campground'},
+        {icon:'🥾', text:'Cub Lake Trail — 4.6 mi from campground'},
+        {icon:'🌙', text:'Campfire, early night for 5 AM start'},
+      ],
+      stay:'Moraine Park Campground, RMNP', heat:null,
+      tip:'Cub Lake trailhead is at the campground — no extra drive.'
+    },
+    {label:'Day 8', from:'Moraine Park, RMNP', to:'Estes Park, CO', drive:'Shuttle day', date:'2026-07-20',
+      activities:[
+        {icon:'🚌', text:'Bear Lake Shuttle from Glacier Basin Park & Ride'},
+        {icon:'🥾', text:'Bear Lake to Emerald Lake — 3.6 mi'},
+        {icon:'🥾', text:'Sky Pond Trail — 8.6 mi from Glacier Gorge trailhead'},
+        {icon:'🏨', text:'Check in at Saddle & Surrey Motel after breaking camp'},
+      ],
+      stay:'Saddle & Surrey Motel, Estes Park', heat:null,
+      tip:'Break camp completely before the shuttle — you will not return to Moraine Park.'
     },
   ]},
   {id:'utah', label:'Phase 4 — Utah Parks Cluster', color:'#D85A30', segments:[
-    {label:'Day 8', from:'Rocky Mountain NP, CO', to:'Moab, UT', drive:'5.5 hrs · 350 mi', date:'2026-07-21',
+    {label:'Day 9', from:'Estes Park, CO', to:'Moab, UT', drive:'5.5 hrs · 350 mi', date:'2026-07-21',
       activities:[
-        {icon:'👁️', text:'Colorado National Monument — 20 min off I-70, stunning canyon overlooks'},
-        {icon:'🏊', text:'Colorado River at Hittle Bottom — swimming and rope swings near Moab'},
-        {icon:'🌅', text:'Arrive at sunset for canyon walls glowing orange'},
+        {icon:'🛣️', text:'I-70 — Eisenhower Tunnel, Vail Pass, Glenwood Canyon'},
+        {icon:'🍽️', text:'Lunch stop in Grand Junction'},
+        {icon:'🏜️', text:'Drive into Utah'},
+        {icon:'🌮', text:'Check in at Moab, dinner on Main St'},
       ],
-      stay:'Moab, UT', heat:'⚠️ July heat in Moab reaches 100–108°F. Hike before 8am or after 5pm. Carry 1L water per hour.',
+      stay:'Moab, UT (3 nights)', heat:'⚠️ July heat in Moab reaches 100–108°F. Hike before 8am or after 5pm. Carry 1L water per hour.',
       tip:'Moab is base camp for both Arches AND Canyonlands — no need to move hotels.'
     },
-    {label:'Day 9', from:'Moab, UT', to:'Arches National Park', drive:'15 min · 5 mi', date:'2026-07-22',
+    {label:'Day 10', from:'Moab, UT', to:'Arches National Park', drive:'15 min · 5 mi', date:'2026-07-22',
       activities:[
         {icon:'🥾', text:'Delicate Arch — 3 mi round trip, start before 7am in July, iconic reward'},
         {icon:'🥾', text:'Devils Garden Trail — 7.8 mi loop, passes the most arches of any single hike'},
@@ -966,7 +1131,7 @@ const ITINERARY = [
       stay:'Moab, UT', heat:'⚠️ Park closes to new entries when temps are extreme. Arrive at opening (6am). Bring 3+ liters of water.',
       tip:null
     },
-    {label:'Day 10', from:'Moab, UT', to:'Canyonlands + Dead Horse Point', drive:'40 min · 25 mi', date:'2026-07-23',
+    {label:'Day 11', from:'Moab, UT', to:'Canyonlands + Dead Horse Point', drive:'40 min · 25 mi', date:'2026-07-23',
       activities:[
         {icon:'🌄', text:'Mesa Arch — 0.5 mi, arrive at sunrise for the red canyon-glow framing shot'},
         {icon:'🥾', text:'Grand View Point — 2 mi, most dramatic Island in the Sky overlook'},
@@ -986,19 +1151,19 @@ const ITINERARY = [
         {icon:'👁️', text:'Desert View Watchtower — east rim, 25 mi drive, stunning Navajo architecture'},
         {icon:'🌅', text:'Yavapai Point at sunset — arguably the best view on the South Rim'},
       ],
-      stay:'Grand Canyon Village or Tusayan, AZ (2 nights)',
+      stay:'Mather Campground, Grand Canyon (2 nights)',
       heat:'⚠️ Rim elevation is 7,000 ft — manageable. Do NOT descend past the 1.5 Mile Resthouse in July. Inner canyon hits 110°F+.',
-      tip:'The canyon is 1 mile deep — every step down must be climbed back up in heat. The rim alone is spectacular.'
+      tip:'Mather Campground is on the South Rim near Mather Point. Break camp before driving to Zion on July 26.'
     },
     {label:'Days 15–16', from:'Grand Canyon, AZ', to:'Zion National Park, UT', drive:'2.5 hrs · 165 mi', date:'2026-07-26',
       activities:[
-        {icon:'🥾', text:'Angels Landing — 5.4 mi, permit required, chain scramble section is unforgettable'},
-        {icon:'🏊', text:'The Narrows (bottom-up) — wade and swim the Virgin River through a slot canyon'},
-        {icon:'🥾', text:'Emerald Pools Trail — 1.3–3 mi, shaded canyon walk with small waterfalls'},
-        {icon:'👁️', text:'Canyon Overlook Trail — 1 mi, arch-framed canyon view'},
-        {icon:'🏊', text:'Virgin River in the canyon bottom — best natural cooldown in the park'},
+        {icon:'⛺', text:'Break camp at Mather, check in at Watchman Campground'},
+        {icon:'🥾', text:'Angels Landing — 5.4 mi, permit required'},
+        {icon:'🏊', text:'The Narrows (bottom-up) — wade the Virgin River through the slot canyon'},
+        {icon:'🥾', text:'Emerald Pools Trail — 1.3–3 mi, shaded canyon walk'},
+        {icon:'👁️', text:'Canyon Overlook Trail — 1 mi, canyon view near the tunnel'},
       ],
-      stay:'Springdale, UT (2 nights)',
+      stay:'Watchman Campground, Zion NP (2 nights)',
       heat:'⚠️ Zion canyon floor hits 105°F in July. The Narrows is the exception — do it when hottest. Everywhere else: hike before 9am.',
       tip:'Angels Landing permits are lottery-based ($6). Book on recreation.gov 1–3 days ahead for best odds.'
     },
@@ -1006,7 +1171,8 @@ const ITINERARY = [
   {id:'desert', label:'Phase 6 — Desert Finale', color:'#BA7517', segments:[
     {label:'Day 17', from:'Zion NP, UT', to:'Las Vegas, NV', drive:'2.5 hrs · 160 mi', date:'2026-07-28',
       activities:[
-        {icon:'👁️', text:'Valley of Fire State Park — highly recommended 50 min detour, otherworldly red rock'},
+        {icon:'⛺', text:'Break camp at Watchman Campground'},
+        {icon:'👁️', text:'Valley of Fire State Park — 50 min detour, red rock at dawn'},
         {icon:'🏊', text:'Lake Mead — swim at Boulder Beach if water levels allow'},
         {icon:'😴', text:'Las Vegas: AC, a great meal, one night of city spectacle'},
         {icon:'🛒', text:'Restock water, sunscreen, and road snacks for the final stretch'},
@@ -1214,6 +1380,12 @@ function switchTab(tab) {
     else setTimeout(() => { map && map.invalidateSize(false); }, 80);
   }
   if (tab === 'share') renderShare();
+  if (tab === 'schedule') {
+    requestAnimationFrame(() => {
+      positionTripProgressMarkers();
+      updateTripProgress();
+    });
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -1392,6 +1564,10 @@ function toggleDay(date) {
   if (!el) return;
   el.classList.toggle('day-collapsed');
   syncDayAria(el);
+  requestAnimationFrame(() => {
+    positionTripProgressMarkers();
+    updateTripProgress();
+  });
 }
 
 function openDay(date) {
@@ -1401,15 +1577,186 @@ function openDay(date) {
   syncDayAria(el);
 }
 
+function clusterForDate(dateStr) {
+  for (const c of STAY_CLUSTERS) {
+    if (dateStr >= c.from && dateStr <= c.to) return c;
+  }
+  return { id:'other', label:'On the road', color:'#9CA3AF' };
+}
+
+function buildStayGroups(items) {
+  const groups = [];
+  items.forEach(item => {
+    const cluster = clusterForDate(item.date);
+    const last = groups[groups.length - 1];
+    if (last && last.cluster.id === cluster.id) last.items.push(item);
+    else groups.push({ cluster, items: [item] });
+  });
+  return groups;
+}
+
+function renderDayCard(item) {
+  const plan = DAILY_PLANS[item.date];
+  if (!plan) return dayRowFallback(item);
+  return dayCardHtml(item, plan);
+}
+
+function stayGroupHtml(group) {
+  const solo = group.items.length === 1;
+  const cards = group.items.map(renderDayCard).join('');
+  const label = group.items.length > 1
+    ? `<span class="stay-bracket-label">${escapeHtml(group.cluster.label)}</span>` : '';
+  return `<div class="stay-group${solo ? ' stay-group-solo' : ''}" style="--stay-color:${group.cluster.color}">
+    <div class="stay-bracket-col" aria-hidden="true">${label}<div class="stay-bracket-line"></div></div>
+    <div class="stay-group-cards">${cards}</div>
+  </div>`;
+}
+
 function renderDailySchedule() {
   const el = document.getElementById('daily-schedule');
   if (!el) return;
+  const groups = buildStayGroups(allSchedItems());
+  el.innerHTML = groups.map(stayGroupHtml).join('');
+  renderTripProgressMarkers();
+  updateTripProgress();
+}
+
+function totalTripMiles() {
+  return BASE.reduce((s, x) => s + x.miles, 0) + customStops.reduce((s, x) => s + (x.miles || 0), 0);
+}
+
+// Major stops only — avoids cramped mileage labels (Moab covers Arches/Canyonlands cluster)
+const TRIP_PROGRESS_STOPS = [
+  'pittsburgh', 'ozarks', 'kansascity', 'denver', 'moab',
+  'grandcanyon', 'zion', 'lasvegas', 'joshuatree', 'losangeles'
+];
+
+const TRIP_PROGRESS_HEADER = 108;
+const TRIP_MARKER_MIN_GAP = 0.042;
+
+function tripProgressAnchor() {
+  return TRIP_PROGRESS_HEADER + (window.innerHeight - TRIP_PROGRESS_HEADER) * 0.5;
+}
+
+function buildTripMilestones() {
+  let cum = 0;
+  const milestones = [];
+  BASE.forEach((s, i) => {
+    if (i > 0) cum += s.miles;
+    if (!TRIP_PROGRESS_STOPS.includes(s.id)) return;
+    milestones.push({
+      miles: cum,
+      label: s.name.split(',')[0],
+      date: s.date,
+      start: s.id === 'pittsburgh'
+    });
+  });
+  return milestones;
+}
+
+function milestoneSchedulePct(date) {
   const items = allSchedItems();
-  el.innerHTML = items.map(item => {
-    const plan = DAILY_PLANS[item.date];
-    if (!plan) return dayRowFallback(item);
-    return dayCardHtml(item, plan);
+  const n = items.length;
+  if (n <= 1) return 0;
+  let idx = items.findIndex(i => i.date === date);
+  if (idx < 0) {
+    idx = items.findIndex(i => i.date >= date);
+    if (idx < 0) idx = n - 1;
+  }
+  return idx / (n - 1);
+}
+
+function measureCardSchedulePct(sched, card) {
+  const schedH = sched.offsetHeight;
+  if (!schedH) return null;
+  const schedTop = sched.getBoundingClientRect().top;
+  const cardRect = card.getBoundingClientRect();
+  if (cardRect.height <= 0) return null;
+  const center = (cardRect.top + cardRect.bottom) / 2 - schedTop;
+  return Math.min(1, Math.max(0, center / schedH));
+}
+
+function scheduleScrollPct() {
+  const sched = document.getElementById('daily-schedule');
+  const tab = document.getElementById('tab-schedule');
+  if (!sched || !tab?.classList.contains('active') || sched.offsetHeight < 50) return 0;
+  const scrolled = tripProgressAnchor() - sched.getBoundingClientRect().top;
+  return Math.min(1, Math.max(0, scrolled / sched.offsetHeight));
+}
+
+function positionTripProgressMarkers() {
+  const el = document.getElementById('trip-progress-markers');
+  const sched = document.getElementById('daily-schedule');
+  if (!el) return;
+
+  const scheduleVisible = sched
+    && sched.offsetHeight > 50
+    && document.getElementById('tab-schedule')?.classList.contains('active');
+
+  const markers = [...el.querySelectorAll('.trip-progress-marker')];
+  const positioned = markers.map(marker => {
+    const date = marker.dataset.date;
+    let pct = milestoneSchedulePct(date);
+    if (scheduleVisible) {
+      const card = document.getElementById('day-' + date);
+      if (card) {
+        const measured = measureCardSchedulePct(sched, card);
+        if (measured != null) pct = measured;
+      }
+    }
+    return { marker, pct };
+  });
+
+  let lastPct = -1;
+  positioned.forEach(({ marker, pct }, i) => {
+    const compact = i > 0 && pct - lastPct < TRIP_MARKER_MIN_GAP;
+    if (!compact) lastPct = pct;
+    marker.classList.toggle('trip-progress-marker-compact', compact);
+    marker.dataset.pct = pct;
+    marker.style.top = (pct * 100) + '%';
+  });
+}
+
+function renderTripProgressMarkers() {
+  const el = document.getElementById('trip-progress-markers');
+  if (!el) return;
+  const milestones = buildTripMilestones();
+  el.innerHTML = milestones.map(m => {
+    const cls = 'trip-progress-marker' + (m.start ? ' trip-progress-marker-start' : '');
+    const mi = m.miles === 0 ? '0 mi' : m.miles.toLocaleString() + ' mi';
+    return `<div class="${cls}" data-date="${m.date}">
+      <span class="trip-progress-mi">${mi}</span>
+      <span class="trip-progress-dot"></span>
+      <span class="trip-progress-name">${escapeHtml(m.label)}</span>
+    </div>`;
   }).join('');
+  positionTripProgressMarkers();
+}
+
+function updateTripProgress() {
+  const fill = document.getElementById('trip-progress-fill');
+  const tab = document.getElementById('tab-schedule');
+  if (!fill || !tab || !tab.classList.contains('active')) return;
+
+  const pct = scheduleScrollPct();
+  fill.style.height = (pct * 100) + '%';
+
+  document.querySelectorAll('.trip-progress-marker').forEach(m => {
+    const mpct = parseFloat(m.dataset.pct);
+    m.classList.toggle('passed', pct >= mpct - 0.01);
+  });
+}
+
+let tripProgressBound = false;
+function initTripProgress() {
+  renderTripProgressMarkers();
+  if (tripProgressBound) return;
+  tripProgressBound = true;
+  window.addEventListener('scroll', updateTripProgress, { passive: true });
+  window.addEventListener('resize', () => {
+    positionTripProgressMarkers();
+    updateTripProgress();
+  }, { passive: true });
 }
 
 function dayRowFallback(item) {
@@ -1657,8 +2004,8 @@ const CAL_HEADLINES = {
   '2026-07-16':'Drive to Kansas City',
   '2026-07-17':'Drive to Denver',
   '2026-07-18':'Denver rest day',
-  '2026-07-19':'Drive to Rocky Mountain NP',
-  '2026-07-20':'Rocky Mountain hikes',
+  '2026-07-19':'Moraine Park camp',
+  '2026-07-20':'Bear Lake & Sky Pond',
   '2026-07-21':'Drive to Moab',
   '2026-07-22':'Arches National Park',
   '2026-07-23':'Canyonlands sunrise',
@@ -2192,6 +2539,7 @@ function syncAll() {
   renderStopsList();
   renderShare();
   updateHeader();
+  updateTripProgress();
   if (mapReady) buildMapLayer();
 }
 
@@ -2206,6 +2554,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderItinerary();
   renderStopsList();
   initCloudSync();
+  initTripProgress();
   renderShare();
   requestAnimationFrame(initMap);
 });
