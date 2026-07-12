@@ -155,16 +155,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 }
 .stay-group{
   display:grid;grid-template-columns:28px 1fr;gap:0 6px;
-  padding:4px 0 8px;--stay-color:#9CA3AF
+  padding:4px 0 8px;--stay-color:#9CA3AF;align-items:start
 }
-.stay-group-cards{min-width:0}
+.stay-group-cards{min-width:0;min-height:0}
 .stay-group-cards .day-card{margin:10px 16px 10px 0}
 .stay-bracket-col{
   position:relative;display:flex;flex-direction:column;align-items:center;
-  padding:18px 0 18px 10px;min-height:100%
+  padding:18px 0 18px 10px;min-height:0;align-self:stretch
 }
 .stay-bracket-line{
-  flex:1;width:4px;min-height:32px;border-radius:3px;
+  flex:0 0 auto;width:4px;min-height:24px;border-radius:3px;
   background:var(--stay-color);position:relative
 }
 .stay-bracket-line::before,.stay-bracket-line::after{
@@ -190,17 +190,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .day-card-hdr{
   padding:12px 14px 10px;border-bottom:.5px solid var(--border);
   display:grid;grid-template-columns:42px 1fr auto;
-  grid-template-areas:"date title chev" "chips chips chips" "foot foot foot";
+  grid-template-areas:"date title expand" "chips chips chips" "foot foot foot" "hint hint hint";
   gap:8px 10px;align-items:start;
   cursor:pointer;user-select:none;transition:background .15s;width:100%;text-align:left;
   background:var(--card);border:none;font:inherit;color:inherit
 }
 .day-card-date{grid-area:date}
 .day-card-title-wrap{grid-area:title;min-width:0}
-.day-chevron{
-  grid-area:chev;flex-shrink:0;font-size:.65rem;color:var(--muted);
-  align-self:center;padding:4px;transition:transform .22s
+.day-expand-ctrl{
+  grid-area:expand;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;align-self:center;min-width:52px;padding:2px 0
 }
+.day-expand-label{
+  font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--muted);line-height:1.15;text-align:center;max-width:4.75rem
+}
+.day-chevron{
+  flex-shrink:0;font-size:1.15rem;line-height:1;color:var(--coral);
+  transition:transform .22s ease
+}
+.day-expand-hint{
+  grid-area:hint;font-size:.68rem;color:var(--muted);line-height:1.35;margin-top:-2px
+}
+.day-card:not(.day-collapsed) .day-expand-hint{display:none}
+.day-card:not(.day-collapsed) .day-expand-label{color:var(--coral)}
 .day-chips{grid-area:chips;width:auto}
 .day-hdr-foot{grid-area:foot}
 .day-card-hdr:hover{background:#FAF7F2}
@@ -645,6 +658,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .header-title{font-size:1.1rem}
   #map{height:320px}
+  .day-expand-ctrl{min-width:56px}
+  .day-expand-label{font-size:.6rem}
+  .day-chevron{font-size:1.25rem}
+  .day-expand-hint{font-size:.7rem}
 }
 </style>
 </head>
@@ -1374,6 +1391,7 @@ function switchTab(tab) {
   if (tab === 'share') renderShare();
   if (tab === 'schedule') {
     requestAnimationFrame(() => {
+      syncStayBrackets();
       positionTripProgressMarkers();
       updateTripProgress();
     });
@@ -1551,12 +1569,28 @@ function syncDayAria(el) {
   if (btn) btn.setAttribute('aria-expanded', !el.classList.contains('day-collapsed'));
 }
 
+function syncStayBrackets(scopeEl) {
+  const groups = scopeEl
+    ? [scopeEl.closest('.stay-group')].filter(Boolean)
+    : [...document.querySelectorAll('.stay-group')];
+  groups.forEach(group => {
+    const cards = group.querySelector('.stay-group-cards');
+    const line = group.querySelector('.stay-bracket-line');
+    if (!cards || !line) return;
+    line.style.height = '';
+    const cardsH = cards.getBoundingClientRect().height;
+    const lineH = Math.max(group.classList.contains('stay-group-solo') ? 24 : 32, cardsH - 36);
+    line.style.height = lineH + 'px';
+  });
+}
+
 function toggleDay(date) {
   const el = document.getElementById('day-' + date);
   if (!el) return;
   el.classList.toggle('day-collapsed');
   syncDayAria(el);
   requestAnimationFrame(() => {
+    syncStayBrackets(el);
     positionTripProgressMarkers();
     updateTripProgress();
   });
@@ -1567,6 +1601,7 @@ function openDay(date) {
   if (!el) return;
   el.classList.remove('day-collapsed');
   syncDayAria(el);
+  requestAnimationFrame(() => syncStayBrackets(el));
 }
 
 function clusterForDate(dateStr) {
@@ -1611,6 +1646,7 @@ function renderDailySchedule() {
   el.innerHTML = groups.map(stayGroupHtml).join('');
   renderTripProgressMarkers();
   updateTripProgress();
+  requestAnimationFrame(() => syncStayBrackets());
 }
 
 function totalTripMiles() {
@@ -1755,6 +1791,7 @@ function initTripProgress() {
   tripProgressBound = true;
   window.addEventListener('scroll', updateTripProgress, { passive: true });
   window.addEventListener('resize', () => {
+    syncStayBrackets();
     positionTripProgressMarkers();
     updateTripProgress();
   }, { passive: true });
@@ -1817,11 +1854,15 @@ function dayCardHtml(item, plan) {
       <div class="day-card-title-wrap">
         <div class="day-card-title">${plan.title}</div>
       </div>
-      <span class="day-chevron" aria-hidden="true">▾</span>
+      <div class="day-expand-ctrl" aria-hidden="true">
+        <span class="day-expand-label">Day schedule</span>
+        <span class="day-chevron">▼</span>
+      </div>
       <div class="day-chips">${driveChip}${freeChip}${restChip}</div>
       <div class="day-hdr-foot">
         <span class="day-sleep-compact">🛏️ ${plan.sleep.place}</span>
       </div>
+      <div class="day-expand-hint">Tap for full hour-by-hour itinerary</div>
     </button>
     <div class="day-card-body" id="day-body-${item.date}">
       <div class="day-card-sub-expanded">${item.detail}</div>
