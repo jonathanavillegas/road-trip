@@ -132,8 +132,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .pin-photos.pin-photos-2{grid-template-columns:1fr 1fr}
 .pin-photos.pin-photos-3{grid-template-columns:1fr 1fr;grid-template-rows:auto auto}
 .pin-photos.pin-photos-3 .pin-photo:first-child{grid-column:1 / -1}
+.pin-photos.pin-photos-grid{grid-template-columns:repeat(3,1fr)}
 .pin-photo{
-  background:#EFE8DF;border-radius:6px;overflow:hidden;cursor:zoom-in;margin:0
+  background:#EFE8DF;border-radius:6px;overflow:hidden;cursor:zoom-in;margin:0;
+  position:relative
 }
 .pin-photo-img-wrap{
   position:relative;width:100%;aspect-ratio:1;background:#EFE8DF
@@ -142,6 +144,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .pin-photos-3 .pin-photo:first-child .pin-photo-img-wrap{aspect-ratio:16/10}
 .pin-photo-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s}
 .pin-photo:hover .pin-photo-img{transform:scale(1.04)}
+.pin-photo-more{cursor:pointer}
+.pin-photo-more .pin-photo-img{filter:brightness(.45)}
+.pin-photo-more:hover .pin-photo-img{transform:none;filter:brightness(.38)}
+.pin-photo-more-label{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:.78rem;font-weight:700;letter-spacing:.02em;pointer-events:none
+}
+.pin-photos-more-btn{
+  display:block;width:100%;margin-top:6px;padding:6px 8px;
+  border:.5px solid var(--border);border-radius:6px;background:var(--bg);
+  font:inherit;font-size:.62rem;font-weight:700;color:var(--coral);
+  cursor:pointer;text-align:center
+}
+.pin-photos-more-btn:hover{border-color:var(--coral);background:#FEF2EE}
 .pin-photo-caption{display:none}
 .pin-photo-empty{display:none}
 .pin-reviews{margin-top:6px;padding-top:6px;border-top:.5px solid var(--border)}
@@ -177,6 +193,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .bite-more.is-visible{display:inline-block}
 .bite-more:hover{text-decoration:underline}
 
+/* Hub pin with nested substops */
+.pin-card-hub{padding:10px}
+.pin-hub-hdr{
+  display:flex;align-items:flex-start;gap:8px;cursor:pointer
+}
+.pin-substops{
+  display:flex;flex-direction:column;gap:8px;
+  margin-top:10px;padding-top:10px;border-top:.5px solid var(--border)
+}
+.pin-substop{
+  background:#FAFAF8;border:.5px solid var(--border);border-radius:8px;
+  padding:8px;min-width:0
+}
+.pin-substop-hdr{
+  display:flex;align-items:flex-start;gap:8px;margin-bottom:0
+}
+.pin-substop-name{font-size:.78rem;font-weight:600;line-height:1.25}
+.pin-substop-note{font-size:.62rem;color:var(--muted);line-height:1.3;margin-top:1px}
+.pin-substop .pin-photos{margin-top:8px}
+.pin-substop-slim{
+  display:flex;align-items:center;gap:8px;padding:6px 8px
+}
+.pin-hike-stats{
+  display:flex;flex-wrap:wrap;gap:6px 10px;margin:6px 0 2px;
+  font-size:.62rem;font-weight:700;color:var(--text)
+}
+.pin-hike-stat{
+  display:inline-flex;align-items:baseline;gap:4px;
+  padding:3px 7px;border-radius:5px;background:#F3F0EB;border:.5px solid var(--border)
+}
+.pin-hike-stat span{font-weight:600;color:var(--muted);font-size:.55rem;text-transform:uppercase;letter-spacing:.04em}
+
 /* Photo lightbox */
 .lightbox{
   position:fixed;inset:0;z-index:10000;display:none;
@@ -210,6 +258,47 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .lightbox-counter{
   color:rgba(255,255,255,.55);font-size:.72rem;letter-spacing:.04em
 }
+
+/* Photo gallery (all thumbs for a pin) */
+.gallery{
+  position:fixed;inset:0;z-index:9000;display:none;
+  align-items:stretch;justify-content:center;
+  background:rgba(20,14,10,.82);padding:16px;box-sizing:border-box
+}
+.gallery.open{display:flex}
+.gallery-panel{
+  position:relative;width:min(920px,100%);max-height:100%;
+  background:var(--card);border-radius:12px;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,.35)
+}
+.gallery-hdr{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px;border-bottom:.5px solid var(--border);flex-shrink:0
+}
+.gallery-title{
+  font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;margin:0;line-height:1.2
+}
+.gallery-meta{font-size:.68rem;color:var(--muted);margin-top:2px}
+.gallery-close{
+  border:none;background:#F3F0EB;color:var(--text);cursor:pointer;
+  border-radius:50%;width:36px;height:36px;font-size:1.2rem;line-height:1;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0
+}
+.gallery-close:hover{background:#E8E0D5}
+.gallery-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:6px;padding:12px 14px 16px;overflow:auto;min-height:0
+}
+.gallery-thumb{
+  margin:0;border:none;padding:0;background:#EFE8DF;border-radius:8px;
+  overflow:hidden;cursor:zoom-in;aspect-ratio:1
+}
+.gallery-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s}
+.gallery-thumb:hover img{transform:scale(1.04)}
+@media(max-width:520px){
+  .gallery{padding:8px}
+  .gallery-grid{grid-template-columns:repeat(3,1fr);gap:4px}
+}
 .type-badge{
   font-size:.58rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
   padding:2px 6px;border-radius:100px;flex-shrink:0
@@ -219,6 +308,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tb-park{background:#D1FAE5;color:#065F46}
 .tb-eat{background:#FEE2E2;color:#991B1B}
 .tb-stop{background:#CFFAFE;color:#155E75}
+.tb-hub{background:#CCFBF1;color:#115E59}
 .tb-rest{background:#F3F4F6;color:#4B5563}
 .tb-custom{background:#EDE9FE;color:#4C1D95}
 
@@ -837,6 +927,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <span class="map-legend-item"><span class="map-legend-dot" style="background:#7C3AED"></span>Sleep</span>
     <span class="map-legend-item"><span class="map-legend-dot" style="background:#D85A30"></span>Eat</span>
     <span class="map-legend-item"><span class="map-legend-dot" style="background:#0E7490"></span>Stop</span>
+    <span class="map-legend-item"><span class="map-legend-dot" style="background:#0F766E"></span>Hub</span>
     <span class="map-legend-item"><span class="map-legend-dot" style="background:#2563EB"></span>Start</span>
     <span class="map-legend-item"><span class="map-legend-dot" style="background:#BA7517"></span>Finish</span>
   </div>
@@ -928,6 +1019,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<div class="gallery" id="gallery" role="dialog" aria-modal="true" aria-label="Photo gallery">
+  <div class="gallery-panel">
+    <div class="gallery-hdr">
+      <div>
+        <h2 class="gallery-title" id="gallery-title">Photos</h2>
+        <div class="gallery-meta" id="gallery-meta"></div>
+      </div>
+      <button type="button" class="gallery-close" onclick="closeGallery()" aria-label="Close gallery">×</button>
+    </div>
+    <div class="gallery-grid" id="gallery-grid"></div>
+  </div>
+</div>
+
 <script src="firebase-config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -975,11 +1079,59 @@ const EAT_PINS = [
       { name:'Pulled pork', score:9, note:'Highlight. Super juicy. Great soft texture. Sweet and subtle seasoning. Delicate and awesome to eat' },
     ],
   },
+  {
+    id:'eat-bonfire', name:'Bonfire Burritos', type:'eat', date:'2026-07-19', seq:1,
+    lat:39.7554, lng:-105.2210,
+    note:'Golden, CO · 2221 Ford St',
+    reviews:[
+      { name:'Chupacabra burrito', score:7.9, note:'Tortilla very chewy and sweet which was awesome. Filling was awesome with sausage bacon egg potato. I wish there were beans. I also think every breakfast burrito place needs a house salsa. Would be 8.5 with that.' },
+    ],
+  },
+  {
+    id:'eat-tacos-garcia', name:'Tacos Garcia', type:'eat', date:'2026-07-21',
+    lat:39.5486, lng:-107.6520,
+    note:'Silt, CO · 101 N 9th St',
+    reviews:[
+      { name:'Tacos', score:7.3, note:'Got asada and carnitas. Pretty solid meat and salsa but tortilla was too soft and chewy. Fell apart a little.' },
+    ],
+  },
+  {
+    id:'eat-la-preferida', name:"La Preferida", type:'eat', date:'2026-07-21',
+    lat:38.5625, lng:-109.5498,
+    note:'Moab, UT · 420 Kane Creek Blvd',
+    reviews:[
+      { name:'Quesabirria tacos', score:8.3, note:'Meat so tender and juicy. Tortillas held up to consommé. Consommé very flavorful. Only downside is that it was very oily. But hard to not be when it’s quesabirria' },
+      { name:'Carnitas burrito', score:8.0, note:'Good ratio of meat to tortilla to beans to guac. Also no rice which I really enjoy. Carnitas was pretty good but not special' },
+      { name:'Horchata', score:7.0, note:'A little watery but still fire' },
+    ],
+  },
 ];
 
 // Scenic / city stopovers (not overnight lodging)
 const STOPOVER_PINS = [
   {id:'stop-stlouis', name:'St. Louis, MO', lat:38.6270, lng:-90.1994, type:'stop', date:'2026-07-15', note:'Drive-day stop on the way to Columbia'},
+];
+
+// Area hubs: one map pin, nested substops (hikes, bars, etc.) in the feed
+const HUB_PINS = [
+  {
+    id:'hub-estes',
+    name:'Estes Park, CO',
+    type:'hub',
+    date:'2026-07-19',
+    seq:2,
+    lat:40.3772,
+    lng:-105.5217,
+    note:'Day base — World Cup in town, then camp at Moraine',
+    substops:[
+      {
+        id:'sub-world-cup',
+        name:'World Cup Final',
+        kind:'event',
+        note:'1:00 PM kickoff · bar in Estes Park',
+      },
+    ],
+  },
 ];
 
 // Bundled trip photos (from Food Photos / Location Photos folders)
@@ -1017,6 +1169,114 @@ const PIN_STATIC_PHOTOS = {
     { url:'photos/food/joes-kc/IMG_2080-2.JPG', caption:'' },
     { url:'photos/food/joes-kc/IMG_2082-2.JPG', caption:'' },
   ],
+  'eat-bonfire': [
+    { url:'photos/food/bonfire/IMG_2107.JPG', caption:'' },
+    { url:'photos/food/bonfire/IMG_2111.JPG', caption:'' },
+    { url:'photos/food/bonfire/IMG_2112.JPG', caption:'' },
+  ],
+  'eat-tacos-garcia': [
+    { url:'photos/food/tacos-garcia/IMG_2145.JPG', caption:'' },
+    { url:'photos/food/tacos-garcia/IMG_2146.JPG', caption:'' },
+    { url:'photos/food/tacos-garcia/IMG_2148.JPG', caption:'' },
+  ],
+  'eat-la-preferida': [
+    { url:'photos/food/la-preferida/IMG_2229.JPG', caption:'' },
+    { url:'photos/food/la-preferida/IMG_2230.JPG', caption:'' },
+  ],
+  rmnp: [
+    { url:'photos/locations/rocky-mountains/IMG_0071.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0072.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0076.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0078.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0079.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0080.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0081.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0082.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0083.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0084.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0085.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0088.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0089.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0090.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/IMG_0123.JPG', caption:'' },
+  ],
+  'hike-basin-loop': [
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0091.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0092.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0093.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0094.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0096.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0097.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0098.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0099.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0100.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0101.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0103.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0104.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0105.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0106.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0107.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0110.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0111.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0112.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0115.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0116.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/basin-loop/IMG_0117.JPG', caption:'' },
+  ],
+  'hike-cub-bear': [
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0126.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0127.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0128.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0129.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0130.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0131.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0134.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0135.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0137.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0138.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0139.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0140.JPG', caption:'' },
+  ],
+  arches: [
+    { url:'photos/locations/arches/IMG_0142.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0144.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0145.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0148.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0150.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0152.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0153.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0154.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0159.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0160.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0162.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0165.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0167.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0170.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0171.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0174.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0175.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0176.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0177.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0178.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0179.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0182.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0184.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0185.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0186.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0187.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0188.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0189.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0190.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0193.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0195.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0199.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0200.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0201.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_0203.JPG', caption:'' },
+  ],
+  // Hub substops — drop files into the folders, then list URLs here
+  'sub-world-cup': [
+  ],
 };
 
 // Lodging / sleep pins (parks & cities also appear as map pins via BASE)
@@ -1025,7 +1285,7 @@ const SLEEP_PINS = [
   {id:'sleep-columbia', name:'Columbia overnight', lat:38.9517, lng:-92.3341, type:'sleep', date:'2026-07-15', note:'Night 2 lodging'},
   {id:'sleep-hays', name:'Hays overnight', lat:38.8792, lng:-99.3268, type:'sleep', date:'2026-07-16', note:'Night 3 lodging'},
   {id:'sleep-denver', name:'Denver overnight', lat:39.7392, lng:-104.9903, type:'sleep', date:'2026-07-17', note:'Hotel near RiNo or downtown'},
-  {id:'sleep-moraine', name:'Moraine Park Campground', lat:40.3565, lng:-105.6070, type:'sleep', date:'2026-07-19', note:'RMNP campground'},
+  {id:'sleep-moraine', name:'Moraine Park Campground', lat:40.3565, lng:-105.6070, type:'sleep', date:'2026-07-19', seq:9, note:'RMNP campground · check in after World Cup'},
   {id:'sleep-saddle', name:'Saddle & Surrey Motel', lat:40.3616, lng:-105.5085, type:'sleep', date:'2026-07-20', note:'1341 S St Vrain Ave, Estes Park'},
   {id:'sleep-river-canyon', name:'River Canyon Lodge', lat:38.5748, lng:-109.5505, type:'sleep', date:'2026-07-21', note:'Moab base camp · 3 nights'},
   {id:'sleep-mather', name:'Mather Campground', lat:36.0492, lng:-112.1215, type:'sleep', date:'2026-07-24', note:'Grand Canyon South Rim'},
@@ -1040,7 +1300,11 @@ const BASE = [
   {id:'columbia',    name:'Columbia, MO',                  lat:38.9517,  lng:-92.3341,  type:'city',        date:'2026-07-15', miles:350, note:'Night 2 — college town on I-70'},
   {id:'hays',        name:'Hays, KS',                      lat:38.8792,  lng:-99.3268,  type:'city',        date:'2026-07-16', miles:380, note:'Night 3 — last stop before the Rockies'},
   {id:'denver',      name:'Denver, CO',                    lat:39.7392,  lng:-104.9903, type:'city',        date:'2026-07-17', miles:430, note:'Gateway to the Rockies'},
-  {id:'rmnp',        name:'Rocky Mountain NP, CO',         lat:40.3428,  lng:-105.6836, type:'park',        date:'2026-07-19', miles:80,  note:'Moraine Park camp, Bear Lake hikes'},
+  {id:'rmnp',        name:'Rocky Mountain NP, CO',         lat:40.3428,  lng:-105.6836, type:'park',        date:'2026-07-19', seq:8, miles:80,  note:'Moraine Park camp, Bear Lake hikes',
+    substops:[
+      {id:'hike-basin-loop', name:'Basin Loop', kind:'hike', distanceMi:4, elevGainFt:230, note:'Jul 19 evening · easy loop after camp setup'},
+      {id:'hike-cub-bear', name:'Cub Lake Trailhead → Bear Lake', kind:'hike', distanceMi:7, elevGainFt:2146, note:'Jul 20 · then hung at Bear Lake until ~4'},
+    ]},
   {id:'moab',        name:'Moab, UT',                      lat:38.5733,  lng:-109.5498, type:'city',        date:'2026-07-21', miles:350, note:'Base camp for Utah parks'},
   {id:'arches',      name:'Arches National Park, UT',      lat:38.7331,  lng:-109.5925, type:'park',        date:'2026-07-22', miles:15,  note:'Delicate Arch + Devils Garden'},
   {id:'canyonlands', name:'Canyonlands National Park, UT', lat:38.2505,  lng:-109.8208, type:'park',        date:'2026-07-23', miles:25,  note:'Mesa Arch sunrise + Dead Horse Point'},
@@ -1057,8 +1321,8 @@ const SCHED = [
   {date:'2026-07-16',type:'drive',    title:'Columbia → Hays',                detail:'Day 3 — I-70 across Missouri and into western Kansas', miles:380, sid:'columbia'},
   {date:'2026-07-17',type:'drive',    title:'Hays → Denver',                  detail:'Day 4 — final leg into Colorado',                     miles:340, sid:'hays'},
   {date:'2026-07-18',type:'city',     title:'Denver',                         detail:'Mile High City — rest and resupply',                 miles:0,   sid:'denver'},
-  {date:'2026-07-19',type:'drive',    title:'Denver → Moraine Park',         detail:'Estes Park resupply, camp at Moraine Park',            miles:80,  sid:'denver'},
-  {date:'2026-07-20',type:'park',     title:'Rocky Mountain NP',            detail:'Bear Lake shuttle, Emerald Lake, Sky Pond',          miles:0,   sid:'rmnp'},
+  {date:'2026-07-19',type:'drive',    title:'Denver → Moraine Park',         detail:'Bonfire, World Cup, camp, Basin Loop', miles:80,  sid:'denver'},
+  {date:'2026-07-20',type:'park',     title:'Rocky Mountain NP',            detail:'Cub Lake → Bear Lake, chill, Saddle & Surrey', miles:0,   sid:'rmnp'},
   {date:'2026-07-21',type:'drive',    title:'Estes Park → Moab',            detail:'I-70 through Colorado, arrive Moab evening',         miles:350, sid:'rmnp'},
   {date:'2026-07-22',type:'park',     title:'Arches National Park',           detail:'Delicate Arch, Devils Garden, Landscape Arch',       miles:15,  sid:'arches'},
   {date:'2026-07-23',type:'park',     title:'Canyonlands + Dead Horse Point', detail:'Mesa Arch sunrise, Island in the Sky',               miles:25,  sid:'canyonlands'},
@@ -1127,35 +1391,32 @@ const DAILY_PLANS = {
   },
   '2026-07-19':{
     title:'Denver → Moraine Park Campground',
-    sleep:{place:'Moraine Park Campground, RMNP',note:'Check-in 1:00 PM · checkout by 12:00 PM noon'},
+    sleep:{place:'Moraine Park Campground, RMNP',note:'Check in after the World Cup · checkout by 12:00 PM noon'},
     blocks:[
-      {type:'drive',start:'10:00 AM',end:'11:30 AM',label:'Drive to Estes Park',detail:'~80 mi from Denver'},
-      {type:'meal',start:'11:30 AM',end:'1:00 PM',label:'Estes Park resupply',ideas:['Fuel, lunch, camp groceries']},
-      {type:'explore',start:'1:00 PM',end:'1:30 PM',label:'Check in at Moraine Park Campground',detail:'Check-in starts at 1:00 PM; camping reservation = park entry from 1:00 PM'},
-      {type:'rest',start:'1:30 PM',end:'2:30 PM',label:'Set up camp'},
-      {type:'explore',start:'2:30 PM',end:'5:30 PM',label:'Cub Lake Trail',detail:'4.6 mi round trip from campground'},
-      {type:'rest',start:'5:30 PM',end:'6:00 PM',label:'Back at camp'},
-      {type:'meal',start:'6:00 PM',end:'7:30 PM',label:'Camp dinner'},
-      {type:'rest',start:'7:30 PM',end:'9:00 PM',label:'Evening at camp',ideas:['Campfire, stargazing, prep for early start']},
-      {type:'rest',start:'9:00 PM',end:'5:00 AM',label:'Early night'}
+      {type:'meal',start:'7:30 AM',end:'8:30 AM',label:'Bonfire Burritos (Golden)',detail:'2221 Ford St · breakfast burritos'},
+      {type:'drive',start:'8:30 AM',end:'12:30 PM',label:'Drive to Estes Park',detail:'~80 mi via Boulder / Peak to Peak or US-36'},
+      {type:'explore',start:'1:00 PM',end:'3:30 PM',label:'World Cup final at a bar in Estes',detail:'1:00 PM kickoff — pick a spot downtown with a good screen'},
+      {type:'drive',start:'3:30 PM',end:'4:00 PM',label:'Drive to Moraine Park Campground'},
+      {type:'explore',start:'4:00 PM',end:'4:30 PM',label:'Check in at Moraine Park Campground',detail:'Camping reservation = park entry; check-in window started at 1:00 PM'},
+      {type:'rest',start:'4:30 PM',end:'5:30 PM',label:'Set up camp'},
+      {type:'explore',start:'5:30 PM',end:'7:30 PM',label:'Basin Loop hike',detail:'4 mi · 230 ft gain — easy evening loop from camp'},
+      {type:'meal',start:'7:30 PM',end:'8:30 PM',label:'Camp dinner'},
+      {type:'rest',start:'8:30 PM',end:'9:00 PM',label:'Evening at camp',ideas:['Early night — big hike tomorrow']},
+      {type:'rest',start:'9:00 PM',end:'5:30 AM',label:'Early night'}
     ]
   },
   '2026-07-20':{
-    title:'Rocky Mountain NP — Bear Lake & Sky Pond',
+    title:'Rocky Mountain NP — Cub Lake to Bear Lake',
     sleep:{place:'Saddle & Surrey Motel, Estes Park',note:'Check-in 3:00-9:00 PM · checkout by 11:00 AM'},
     blocks:[
-      {type:'rest',start:'5:00 AM',end:'6:00 AM',label:'Break camp at Moraine Park',ideas:['Pack up completely before leaving Moraine Park','Moraine Park checkout is by noon — this early departure works']},
-      {type:'drive',start:'6:00 AM',end:'6:20 AM',label:'Drive to Glacier Basin Park & Ride',detail:'~10 min from Moraine Park'},
-      {type:'explore',start:'6:20 AM',end:'6:45 AM',label:'Bear Lake Shuttle',detail:'Runs every 10–15 min from 6:30 AM'},
-      {type:'explore',start:'6:45 AM',end:'10:00 AM',label:'Bear Lake to Emerald Lake',detail:'3.6 mi — Nymph, Dream, Emerald lakes'},
-      {type:'explore',start:'10:00 AM',end:'1:00 PM',label:'Sky Pond Trail',detail:'8.6 mi round trip from Glacier Gorge trailhead'},
-      {type:'meal',start:'1:00 PM',end:'2:00 PM',label:'Lunch'},
-      {type:'explore',start:'2:00 PM',end:'4:00 PM',label:'Afternoon free time',ideas:['Extra trails, scenic pullouts, Alpine Visitor Center']},
-      {type:'explore',start:'4:30 PM',end:'5:00 PM',label:'Shuttle back to Park & Ride'},
-      {type:'drive',start:'5:00 PM',end:'5:30 PM',label:'Drive through Estes Park'},
-      {type:'rest',start:'6:00 PM',end:'6:30 PM',label:'Check in at Saddle & Surrey Motel',detail:'Check-in window is 3:00-9:00 PM'},
-      {type:'meal',start:'7:00 PM',end:'8:30 PM',label:'Dinner in Estes Park'},
-      {type:'rest',start:'9:00 PM',end:'5:00 AM',label:'Sleep'}
+      {type:'rest',start:'5:30 AM',end:'6:00 AM',label:'Break camp at Moraine Park',ideas:['Pack up completely — you will not return to Moraine Park','Checkout is by noon']},
+      {type:'explore',start:'6:00 AM',end:'12:00 PM',label:'Cub Lake Trailhead → Bear Lake',detail:'7 mi · 2,146 ft gain — point-to-point to Bear Lake'},
+      {type:'explore',start:'12:00 PM',end:'4:00 PM',label:'Hang at Bear Lake',detail:'Chill by the water, snacks, no rush'},
+      {type:'explore',start:'4:00 PM',end:'4:30 PM',label:'Shuttle back to the car',detail:'Bear Lake Shuttle → Glacier Basin Park & Ride'},
+      {type:'drive',start:'4:30 PM',end:'5:00 PM',label:'Drive into Estes Park'},
+      {type:'rest',start:'5:00 PM',end:'5:30 PM',label:'Check in at Saddle & Surrey Motel',detail:'1341 S St Vrain Ave · check-in window 3:00–9:00 PM'},
+      {type:'meal',start:'6:00 PM',end:'8:00 PM',label:'Dinner in Estes Park'},
+      {type:'rest',start:'8:30 PM',end:'7:00 AM',label:'Sleep'}
     ]
   },
   '2026-07-21':{
@@ -1166,10 +1427,10 @@ const DAILY_PLANS = {
       {type:'drive',start:'8:00 AM',end:'9:30 AM',label:'Drive to I-70',detail:'South from Estes Park'},
       {type:'rest',start:'9:30 AM',end:'10:00 AM',label:'Fuel stop',ideas:['Denver / I-70 junction if needed']},
       {type:'drive',start:'10:00 AM',end:'2:30 PM',label:'I-70 through the Rockies',detail:'Eisenhower Tunnel, Vail Pass, Glenwood Canyon'},
-      {type:'meal',start:'2:30 PM',end:'3:00 PM',label:'Lunch in Grand Junction'},
-      {type:'drive',start:'3:00 PM',end:'5:30 PM',label:'Drive into Utah',detail:'~350 mi total today'},
+      {type:'meal',start:'2:00 PM',end:'2:45 PM',label:'Tacos Garcia (Silt, CO)',detail:'101 N 9th St · asada & carnitas tacos on the I-70 drive'},
+      {type:'drive',start:'2:45 PM',end:'5:30 PM',label:'Drive into Utah',detail:'~350 mi total today'},
       {type:'rest',start:'5:30 PM',end:'6:00 PM',label:'Check in at River Canyon Lodge',detail:'Check-in starts at 3:00 PM — evening arrival works'},
-      {type:'meal',start:'7:00 PM',end:'8:30 PM',label:'Dinner in Moab'}
+      {type:'meal',start:'7:00 PM',end:'8:30 PM',label:'La Preferida (Moab)',detail:'420 Kane Creek Blvd · quesabirria, carnitas burrito, horchata'}
     ]
   },
   '2026-07-22':{
@@ -1297,6 +1558,22 @@ const STAY_CLUSTERS = [
   { id:'la',      label:'Los Angeles',      color:'#047857', from:'2026-07-31', to:'2026-07-31' },
 ];
 
+// Photo-feed sections: multi-day stays (esp. parks) share one header
+const PIN_FEED_SECTIONS = [
+  { id:'d14',   from:'2026-07-14', to:'2026-07-14' },
+  { id:'d15',   from:'2026-07-15', to:'2026-07-15' },
+  { id:'d16',   from:'2026-07-16', to:'2026-07-16' },
+  { id:'d17',   from:'2026-07-17', to:'2026-07-17' },
+  { id:'d18',   from:'2026-07-18', to:'2026-07-18' },
+  { id:'rmnp',  from:'2026-07-19', to:'2026-07-20', place:'Rocky Mountain NP' },
+  { id:'moab',  from:'2026-07-21', to:'2026-07-23', place:'Moab' },
+  { id:'gc',    from:'2026-07-24', to:'2026-07-25', place:'Grand Canyon' },
+  { id:'zion',  from:'2026-07-26', to:'2026-07-27', place:'Zion' },
+  { id:'vegas', from:'2026-07-28', to:'2026-07-28' },
+  { id:'jtree', from:'2026-07-29', to:'2026-07-30', place:'Joshua Tree' },
+  { id:'la',    from:'2026-07-31', to:'2026-07-31' },
+];
+
 const WEEKS = [
   {label:'Phase 1 — Cross-Country Push',   start:'2026-07-14', end:'2026-07-17'},
   {label:'Phase 2 — The Rockies',          start:'2026-07-17', end:'2026-07-20'},
@@ -1355,25 +1632,25 @@ const ITINERARY = [
       stay:'Denver, CO', heat:null,
       tip:'Camping reservation at Moraine Park gate is park entry. No separate timed-entry permit needed.'
     },
-    {label:'Day 6', from:'Denver, CO', to:'Moraine Park Campground, RMNP', drive:'1.5 hrs · 80 mi', date:'2026-07-19',
+    {label:'Day 6', from:'Denver, CO', to:'Moraine Park Campground, RMNP', drive:'~80 mi', date:'2026-07-19',
       activities:[
-        {icon:'🏘️', text:'Estes Park — fuel, lunch, camp groceries'},
-        {icon:'⛺', text:'Check in at Moraine Park Campground'},
-        {icon:'🥾', text:'Cub Lake Trail — 4.6 mi from campground'},
-        {icon:'🌙', text:'Campfire, early night for 5 AM start'},
+        {icon:'🌯', text:'Bonfire Burritos in Golden — breakfast on the way'},
+        {icon:'⚽', text:'World Cup final at 1:00 PM — bar in Estes Park'},
+        {icon:'⛺', text:'Check in and set up camp at Moraine Park'},
+        {icon:'🥾', text:'Basin Loop — 4 mi · 230 ft gain after camp setup'},
       ],
-      stay:'Moraine Park Campground, RMNP (check-in 1:00 PM, checkout noon)', heat:null,
-      tip:'Cub Lake trailhead is at the campground — no extra drive. The 1:00 PM arrival lines up with campground check-in.'
+      stay:'Moraine Park Campground, RMNP (check in after World Cup, checkout noon)', heat:null,
+      tip:'Golden → Estes for kickoff → Moraine Park → Basin Loop in the evening.'
     },
-    {label:'Day 7', from:'Moraine Park, RMNP', to:'Estes Park, CO', drive:'Shuttle day', date:'2026-07-20',
+    {label:'Day 7', from:'Moraine Park, RMNP', to:'Estes Park, CO', drive:'Shuttle + short drive', date:'2026-07-20',
       activities:[
-        {icon:'🚌', text:'Bear Lake Shuttle from Glacier Basin Park & Ride'},
-        {icon:'🥾', text:'Bear Lake to Emerald Lake — 3.6 mi'},
-        {icon:'🥾', text:'Sky Pond Trail — 8.6 mi from Glacier Gorge trailhead'},
-        {icon:'🏨', text:'Check in at Saddle & Surrey Motel after breaking camp'},
+        {icon:'🥾', text:'Cub Lake Trailhead → Bear Lake — 7 mi · 2,146 ft gain'},
+        {icon:'🏞️', text:'Hang at Bear Lake until ~4:00 PM'},
+        {icon:'🚌', text:'Shuttle back to the car, then Estes Park'},
+        {icon:'🏨', text:'Check in at Saddle & Surrey · dinner in town'},
       ],
       stay:'Saddle & Surrey Motel, Estes Park (check-in 3:00-9:00 PM, checkout 11:00 AM)', heat:null,
-      tip:'Break camp completely before the shuttle — you will not return to Moraine Park. The 6:00 PM motel arrival fits the check-in window.'
+      tip:'Break camp completely in the morning — you will not return to Moraine Park. Motel check-in window runs until 9:00 PM.'
     },
   ]},
   {id:'utah', label:'Phase 3 — Utah Parks Cluster', color:'#D85A30', segments:[
@@ -1501,6 +1778,7 @@ function allMapPins() {
     ...parkPinsFromBase(),
     ...SLEEP_PINS,
     ...STOPOVER_PINS,
+    ...HUB_PINS,
     ...EAT_PINS,
     ...customStops.map(s => ({
       ...s,
@@ -1510,14 +1788,31 @@ function allMapPins() {
   return pins.sort((a, b) => {
     const d = a.date.localeCompare(b.date);
     if (d) return d;
-    // Sleep always last within a day; destination finishes the trip
-    const order = { origin:0, stop:1, park:2, eat:3, city:4, rest:5, sleep:8, destination:9 };
-    return (order[a.type] ?? 6) - (order[b.type] ?? 6);
+    // Optional seq overrides type order within a day (sleep still last by default)
+    const order = { origin:0, hub:1, stop:2, park:3, eat:4, city:5, rest:6, sleep:8, destination:9 };
+    const sa = a.seq != null ? a.seq : (order[a.type] ?? 6);
+    const sb = b.seq != null ? b.seq : (order[b.type] ?? 6);
+    return sa - sb;
   });
 }
 
 function pinById(id) {
-  return allMapPins().find(p => p.id === id);
+  const top = allMapPins().find(p => p.id === id);
+  if (top) return top;
+  for (const parent of allMapPins()) {
+    const sub = (parent.substops || []).find(s => s.id === id);
+    if (sub) {
+      return {
+        ...sub,
+        type: 'substop',
+        date: parent.date,
+        parentId: parent.id,
+        lat: parent.lat,
+        lng: parent.lng,
+      };
+    }
+  }
+  return null;
 }
 
 // Map pin id → journal storage id (photos may live on route-stop keys)
@@ -1663,11 +1958,14 @@ function persist() {
 const STOP_CLR = {
   origin:'#2563EB', destination:'#BA7517', park:'#1D9E75',
   sleep:'#7C3AED', eat:'#D85A30', city:'#7C3AED', stop:'#0E7490',
-  rest:'#9CA3AF', custom:'#7C3AED'
+  hub:'#0F766E', rest:'#9CA3AF', custom:'#7C3AED'
 };
 const DAY_CLR  = {drive:'#2563EB',park:'#1D9E75',city:'#D85A30',rest:'#9CA3AF',milestone:'#BA7517'};
-const ICON_MAP = {origin:'🏠',destination:'🌟',city:'🛏️',park:'🌲',sleep:'🛏️',eat:'🍔',stop:'📍',rest:'😴',custom:'📍'};
-const PIN_TYPE_LABEL = {origin:'Start',destination:'Finish',park:'Park',sleep:'Sleep',eat:'Eat',city:'Sleep',stop:'Stop'};
+const ICON_MAP = {origin:'🏠',destination:'🌟',city:'🛏️',park:'🌲',sleep:'🛏️',eat:'🍔',stop:'📍',hub:'📍',rest:'😴',custom:'📍'};
+const PIN_TYPE_LABEL = {
+  origin:'Start', destination:'Finish', park:'Park', sleep:'Sleep',
+  eat:'Eat', city:'Sleep', stop:'Stop', hub:'Hub', substop:'Stop'
+};
 
 function stopColor(type){ return STOP_CLR[type] || STOP_CLR.custom }
 function dayColor(type) { return DAY_CLR[type]  || '#9CA3AF' }
@@ -1681,6 +1979,24 @@ function fmtFull(ds){
 }
 function fmtDay(ds) { return new Date(ds+'T00:00:00').getDate() }
 function fmtMon(ds) { return new Date(ds+'T00:00:00').toLocaleDateString('en-US',{month:'short'}) }
+function fmtDateRange(from, to) {
+  if (from === to) return fmtFull(from);
+  const a = new Date(from + 'T00:00:00');
+  const b = new Date(to + 'T00:00:00');
+  const monA = a.toLocaleDateString('en-US', { month: 'short' });
+  if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) {
+    return `${monA} ${a.getDate()}–${b.getDate()}`;
+  }
+  const monB = b.toLocaleDateString('en-US', { month: 'short' });
+  return `${monA} ${a.getDate()} – ${monB} ${b.getDate()}`;
+}
+function feedSectionForDate(ds) {
+  return PIN_FEED_SECTIONS.find(s => ds >= s.from && ds <= s.to) || null;
+}
+function fmtFeedSectionTitle(section) {
+  const range = fmtDateRange(section.from, section.to);
+  return section.place ? `${range} · ${section.place}` : range;
+}
 
 // ═══════════════════════════════════════════════
 // TAB SWITCHING
@@ -1726,6 +2042,10 @@ const MAP_STOP_LABELS = {
   'sleep-jumbo':'Jumbo Rocks',
   'eat-joes-kc':"Joe's KC", 'eat-white-castle':'White Castle',
   'eat-culvers':"Culver's", 'eat-freddys':"Freddy's",
+  'eat-bonfire':'Bonfire',
+  'eat-tacos-garcia':'Tacos Garcia',
+  'eat-la-preferida':'La Preferida',
+  'hub-estes':'Estes Park',
   'stop-stlouis':'St. Louis',
 };
 
@@ -1754,13 +2074,16 @@ function popupHtml(pin) {
   if (preview.length) {
     const cls = preview.length === 1 ? ' popup-thumbs-1' : '';
     thumbs = `<div class="popup-thumbs${cls}">${preview.map((photo, i) => {
-      const src = photoSrc(photo);
+      const src = photoThumbSrc(photo);
       const more = (i === preview.length - 1 && extra > 0)
         ? `<span class="popup-thumb-more">+${extra}</span>` : '';
       return `<button type="button" class="popup-thumb" data-pin="${escAttr(pin.id)}" data-idx="${i}">
-        <img src="${escAttr(src)}" alt="" loading="lazy">${more}
+        <img src="${escAttr(src)}" alt="" loading="lazy"
+          onerror="this.onerror=null;this.src='${escAttr(photoSrc(photo))}'">${more}
       </button>`;
     }).join('')}</div>`;
+  } else if (pin.substops?.length) {
+    thumbs = `<div class="popup-note">${pin.substops.map(s => escapeHtml(s.name)).join(' · ')}</div>`;
   } else {
     thumbs = `<div class="popup-empty">No photos yet</div>`;
   }
@@ -1853,8 +2176,17 @@ function selectStop(id, opts = {}) {
   selectPin(id, { fromMap: opts.fly !== false });
 }
 
+function reviewKindFor(pin) {
+  if (pin.reviewKind) return pin.reviewKind;
+  if (pin.kind === 'hike' || pin.type === 'park') return 'trail';
+  if (pin.type === 'eat') return 'bites';
+  return 'bites';
+}
+
 function pinReviewsHtml(pin) {
   if (!pin.reviews || !pin.reviews.length) return '';
+  const kind = reviewKindFor(pin);
+  const title = kind === 'trail' ? 'Trail review' : 'Bites review';
   const items = pin.reviews.map(item => `
     <div class="bite-item">
       <div class="bite-item-top">
@@ -1866,7 +2198,7 @@ function pinReviewsHtml(pin) {
         onclick="event.stopPropagation(); toggleBiteNote(this)">More</button>
     </div>`).join('');
   return `<div class="pin-reviews">
-    <div class="pin-reviews-title">Bites review</div>
+    <div class="pin-reviews-title">${title}</div>
     ${items}
   </div>`;
 }
@@ -1906,23 +2238,121 @@ function collectPinPhotos(pin) {
   ];
 }
 
-function pinPhotosHtml(pin) {
+const PIN_PHOTO_PREVIEW_COLS = 3;
+const PIN_PHOTO_PREVIEW_ROWS = 2;
+const PIN_PHOTO_PREVIEW_MAX = PIN_PHOTO_PREVIEW_COLS * PIN_PHOTO_PREVIEW_ROWS; // 2 rows × 3 cols
+
+function pinPhotoFigureHtml(pin, photo, idx, opts = {}) {
+  const src = photoThumbSrc(photo);
+  const more = opts.moreCount > 0;
+  const click = more
+    ? `openGallery('${pin.id}')`
+    : `openLightbox('${pin.id}', ${idx})`;
+  const moreLabel = more
+    ? `<span class="pin-photo-more-label">+${opts.moreCount}</span>`
+    : '';
+  return `<figure class="pin-photo${more ? ' pin-photo-more' : ''}" role="button" tabindex="0"
+    onclick="event.stopPropagation(); ${click}"
+    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${click}}">
+    <div class="pin-photo-img-wrap">
+      <img class="pin-photo-img" src="${escAttr(src)}" alt="${escAttr(photo.caption || pin.name)}" loading="lazy"
+        onerror="this.onerror=null;this.src='${escAttr(photoSrc(photo))}';if(!this.src)this.parentElement.innerHTML='<span class=\\'photo-broken\\'>Preview unavailable</span>'">
+      ${moreLabel}
+    </div>
+  </figure>`;
+}
+
+function pinPhotosHtml(pin, opts = {}) {
   const photos = collectPinPhotos(pin);
   if (!photos.length) return '';
-  const countCls = photos.length === 1 ? ' pin-photos-1'
-    : photos.length === 2 ? ' pin-photos-2'
-    : photos.length === 3 ? ' pin-photos-3' : '';
-  return `<div class="pin-photos${countCls}">${photos.map((photo, idx) => {
-    const src = photoSrc(photo);
-    return `<figure class="pin-photo" role="button" tabindex="0"
-      onclick="event.stopPropagation(); openLightbox('${pin.id}', ${idx})"
-      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openLightbox('${pin.id}', ${idx})}">
-      <div class="pin-photo-img-wrap">
-        <img class="pin-photo-img" src="${escAttr(src)}" alt="${escAttr(photo.caption || pin.name)}" loading="lazy"
-          onerror="this.parentElement.innerHTML='<span class=\\'photo-broken\\'>Preview unavailable</span>'">
+  const previewRows = opts.previewRows != null ? opts.previewRows : PIN_PHOTO_PREVIEW_ROWS;
+  const previewMax = PIN_PHOTO_PREVIEW_COLS * previewRows;
+
+  // Fancy 1–3 layouts only for the default (taller) preview
+  if (photos.length <= 3 && previewRows >= 2) {
+    const countCls = photos.length === 1 ? ' pin-photos-1'
+      : photos.length === 2 ? ' pin-photos-2'
+      : ' pin-photos-3';
+    return `<div class="pin-photos${countCls}">${photos.map((photo, idx) =>
+      pinPhotoFigureHtml(pin, photo, idx)
+    ).join('')}</div>`;
+  }
+
+  const collapsed = photos.length > previewMax;
+  const limit = collapsed ? previewMax : photos.length;
+  const moreCount = collapsed ? photos.length - previewMax : 0;
+  const figures = [];
+  for (let i = 0; i < limit; i++) {
+    const isMoreTile = collapsed && i === limit - 1;
+    figures.push(pinPhotoFigureHtml(pin, photos[i], i, {
+      moreCount: isMoreTile ? moreCount : 0,
+    }));
+  }
+  const seeAll = collapsed
+    ? `<button type="button" class="pin-photos-more-btn"
+        onclick="event.stopPropagation(); openGallery('${pin.id}')">
+        See all ${photos.length} photos
+      </button>`
+    : '';
+  return `<div class="pin-photos pin-photos-grid">${figures.join('')}</div>${seeAll}`;
+}
+
+function hikeStatsHtml(sub) {
+  if (sub.kind !== 'hike') return '';
+  const bits = [];
+  if (sub.distanceMi != null) {
+    bits.push(`<div class="pin-hike-stat">${sub.distanceMi} mi <span>distance</span></div>`);
+  }
+  if (sub.elevGainFt != null) {
+    bits.push(`<div class="pin-hike-stat">${Number(sub.elevGainFt).toLocaleString()} ft <span>gain</span></div>`);
+  }
+  if (!bits.length) return '';
+  return `<div class="pin-hike-stats">${bits.join('')}</div>`;
+}
+
+function substopCardHtml(sub, parent) {
+  const pin = {
+    ...sub,
+    type: 'substop',
+    date: parent.date,
+    parentId: parent.id,
+    kind: sub.kind,
+    reviews: sub.reviews || [],
+  };
+  const photos = collectPinPhotos(pin);
+  const hasReviews = !!(pin.reviews && pin.reviews.length);
+  const hasStats = sub.kind === 'hike' && (sub.distanceMi != null || sub.elevGainFt != null);
+  const expanded = photos.length > 0 || hasReviews || hasStats;
+
+  if (!expanded) {
+    return `<div class="pin-substop pin-substop-slim" id="pin-${sub.id}">
+      <div class="pin-card-dot" style="background:${stopColor('stop')}"></div>
+      <div class="pin-card-meta">
+        <div class="pin-substop-name">${escapeHtml(sub.name)}</div>
+        ${sub.note ? `<div class="pin-substop-note">${escapeHtml(sub.note)}</div>` : ''}
       </div>
-    </figure>`;
-  }).join('')}</div>`;
+      ${sub.kind === 'hike' ? '<span class="type-badge tb-park">Hike</span>' : ''}
+    </div>`;
+  }
+
+  const bits = [];
+  if (sub.kind === 'hike') bits.push('Hike');
+  if (photos.length) bits.push(`${photos.length} photo${photos.length > 1 ? 's' : ''}`);
+  if (hasReviews) bits.push(`${pin.reviews.length} review${pin.reviews.length > 1 ? 's' : ''}`);
+
+  return `<div class="pin-substop" id="pin-${sub.id}">
+    <div class="pin-substop-hdr">
+      <div class="pin-card-dot" style="background:${stopColor(sub.kind === 'hike' ? 'park' : 'stop')}"></div>
+      <div class="pin-card-meta">
+        <div class="pin-substop-name">${escapeHtml(sub.name)}</div>
+        <div class="pin-substop-note">${escapeHtml(sub.note || '')}${bits.length ? (sub.note ? ' · ' : '') + bits.join(' · ') : ''}</div>
+      </div>
+      ${sub.kind === 'hike' ? '<span class="type-badge tb-park">Hike</span>' : ''}
+    </div>
+    ${hikeStatsHtml(sub)}
+    ${pinPhotosHtml(pin, sub.kind === 'hike' ? { previewRows: 1 } : {})}
+    ${pinReviewsHtml(pin)}
+  </div>`;
 }
 
 function pinCardHtml(pin) {
@@ -1930,6 +2360,39 @@ function pinCardHtml(pin) {
   const photos = collectPinPhotos(pin);
   const hasPhotos = photos.length > 0;
   const active = selectedStopId === pin.id ? ' pin-card-active' : '';
+  const substops = pin.substops || [];
+  const hasSubstops = substops.length > 0;
+
+  if (pin.type === 'hub' || hasSubstops) {
+    const onMap = pin.lat != null && pin.lng != null && !pin.pending
+      ? `<button type="button" class="pin-jump-btn" onclick="event.stopPropagation(); focusPinOnMap('${pin.id}')">Map</button>`
+      : '';
+    const badge = pin.type === 'hub'
+      ? '<span class="type-badge tb-hub">Hub</span>'
+      : `<span class="type-badge tb-${pin.type}">${escapeHtml(typeLbl)}</span>`;
+    const hikeCount = substops.filter(s => s.kind === 'hike').length;
+    const subLabel = hikeCount
+      ? `${hikeCount} hike${hikeCount === 1 ? '' : 's'}${hasPhotos ? ` · ${photos.length} photo${photos.length > 1 ? 's' : ''}` : ''}`
+      : (hasSubstops
+        ? `${substops.length} stop${substops.length === 1 ? '' : 's'}${hasPhotos ? ` · ${photos.length} photo${photos.length > 1 ? 's' : ''}` : ''}`
+        : (hasPhotos ? `${photos.length} photo${photos.length > 1 ? 's' : ''}` : ''));
+    return `<article class="pin-card pin-card-hub${active}" id="pin-${pin.id}">
+      <div class="pin-hub-hdr" onclick="selectPin('${pin.id}', { fromMap: false })">
+        <div class="pin-card-dot" style="background:${stopColor(pin.type)}"></div>
+        <div class="pin-card-meta">
+          <div class="pin-card-name">${escapeHtml(pin.name)}</div>
+          <div class="pin-card-sub">${escapeHtml(subLabel)}</div>
+          <div class="pin-card-actions">
+            ${badge}
+            ${onMap}
+          </div>
+        </div>
+      </div>
+      ${pin.note ? `<div class="pin-substop-note" style="margin:4px 0 0 21px">${escapeHtml(pin.note)}</div>` : ''}
+      ${hasPhotos ? pinPhotosHtml(pin) : ''}
+      ${hasSubstops ? `<div class="pin-substops">${substops.map(s => substopCardHtml(s, pin)).join('')}</div>` : ''}
+    </article>`;
+  }
 
   // No photos → collapsed one-line row (reviews alone don't expand)
   if (!hasPhotos) {
@@ -1968,22 +2431,33 @@ function renderPinFeed() {
   const el = document.getElementById('pin-feed');
   if (!el) return;
   const pins = allMapPins();
-  const byDay = [];
+  const bySection = [];
+  const sectionIndex = new Map();
+
   pins.forEach(pin => {
-    const last = byDay[byDay.length - 1];
-    if (last && last.date === pin.date) last.pins.push(pin);
-    else byDay.push({ date: pin.date, pins: [pin] });
+    const section = feedSectionForDate(pin.date);
+    const key = section ? section.id : pin.date;
+    if (sectionIndex.has(key)) {
+      bySection[sectionIndex.get(key)].pins.push(pin);
+      return;
+    }
+    sectionIndex.set(key, bySection.length);
+    bySection.push({
+      section: section || { id: key, from: pin.date, to: pin.date },
+      pins: [pin],
+    });
   });
 
-  el.innerHTML = byDay.map(day => {
-    const n = day.pins.length;
-    return `<section class="pin-day" aria-label="${fmtFull(day.date)}">
+  el.innerHTML = bySection.map(({ section, pins: sectionPins }) => {
+    const n = sectionPins.length;
+    const title = fmtFeedSectionTitle(section);
+    return `<section class="pin-day" aria-label="${escapeHtml(title)}">
       <div class="pin-day-hdr">
-        <span class="pin-day-date">${fmtFull(day.date)}</span>
+        <span class="pin-day-date">${escapeHtml(title)}</span>
         <span class="pin-day-meta">${n} pin${n === 1 ? '' : 's'}</span>
       </div>
       <div class="pin-day-grid">
-        ${day.pins.map(pin => `<div class="pin-day-step">${pinCardHtml(pin)}</div>`).join('')}
+        ${sectionPins.map(pin => `<div class="pin-day-step">${pinCardHtml(pin)}</div>`).join('')}
       </div>
     </section>`;
   }).join('');
@@ -1992,6 +2466,45 @@ function renderPinFeed() {
 
 let lightboxPinId = null;
 let lightboxIndex = 0;
+let galleryPinId = null;
+
+function isGalleryOpen() {
+  const el = document.getElementById('gallery');
+  return !!(el && el.classList.contains('open'));
+}
+
+function openGallery(pinId) {
+  const pin = pinById(pinId);
+  if (!pin) return;
+  const photos = collectPinPhotos(pin);
+  if (!photos.length) return;
+  galleryPinId = pinId;
+  const el = document.getElementById('gallery');
+  document.getElementById('gallery-title').textContent = pin.name;
+  document.getElementById('gallery-meta').textContent =
+    `${photos.length} photo${photos.length === 1 ? '' : 's'} · tap one to enlarge`;
+  document.getElementById('gallery-grid').innerHTML = photos.map((photo, idx) => {
+    const src = photoThumbSrc(photo);
+    return `<button type="button" class="gallery-thumb"
+      onclick="openLightbox('${pin.id}', ${idx})"
+      aria-label="${escAttr(photo.caption || pin.name)}">
+      <img src="${escAttr(src)}" alt="" loading="lazy"
+        onerror="this.onerror=null;this.src='${escAttr(photoSrc(photo))}'">
+    </button>`;
+  }).join('');
+  el.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeGallery() {
+  const el = document.getElementById('gallery');
+  if (!el) return;
+  el.classList.remove('open');
+  galleryPinId = null;
+  if (!document.getElementById('lightbox')?.classList.contains('open')) {
+    document.body.style.overflow = '';
+  }
+}
 
 function openLightbox(pinId, index) {
   const pin = pinById(pinId);
@@ -2009,8 +2522,8 @@ function openLightbox(pinId, index) {
 function closeLightbox() {
   const el = document.getElementById('lightbox');
   el.classList.remove('open');
-  document.body.style.overflow = '';
   lightboxPinId = null;
+  if (!isGalleryOpen()) document.body.style.overflow = '';
 }
 
 function lightboxStep(delta) {
@@ -2043,17 +2556,25 @@ function renderLightbox() {
 }
 
 document.addEventListener('keydown', (e) => {
-  const el = document.getElementById('lightbox');
-  if (!el || !el.classList.contains('open')) return;
-  if (e.key === 'Escape') closeLightbox();
-  if (e.key === 'ArrowLeft') lightboxStep(-1);
-  if (e.key === 'ArrowRight') lightboxStep(1);
+  const lb = document.getElementById('lightbox');
+  const gal = document.getElementById('gallery');
+  if (lb && lb.classList.contains('open')) {
+    if (e.key === 'Escape') { closeLightbox(); return; }
+    if (e.key === 'ArrowLeft') lightboxStep(-1);
+    if (e.key === 'ArrowRight') lightboxStep(1);
+    return;
+  }
+  if (gal && gal.classList.contains('open') && e.key === 'Escape') closeGallery();
 });
 
 document.addEventListener('click', (e) => {
-  const el = document.getElementById('lightbox');
-  if (!el || !el.classList.contains('open')) return;
-  if (e.target === el) closeLightbox();
+  const lb = document.getElementById('lightbox');
+  if (lb && lb.classList.contains('open') && e.target === lb) {
+    closeLightbox();
+    return;
+  }
+  const gal = document.getElementById('gallery');
+  if (gal && gal.classList.contains('open') && e.target === gal) closeGallery();
 });
 
 function focusPinOnMap(id) {
@@ -2601,8 +3122,8 @@ const CAL_HEADLINES = {
   '2026-07-16':'Drive to Hays, KS',
   '2026-07-17':'Drive to Denver',
   '2026-07-18':'Denver rest day',
-  '2026-07-19':'Moraine Park camp',
-  '2026-07-20':'Bear Lake & Sky Pond',
+  '2026-07-19':'Bonfire · World Cup · Basin Loop',
+  '2026-07-20':'Cub→Bear Lake · Saddle & Surrey',
   '2026-07-21':'Drive to Moab',
   '2026-07-22':'Arches National Park',
   '2026-07-23':'Canyonlands sunrise',
@@ -2883,6 +3404,17 @@ function normalizePhoto(p) {
 
 function photoSrc(photo) {
   return (photo && (photo.url || photo.data)) || '';
+}
+
+/** Small preview URL for feed / gallery / map popup. Falls back to full if no thumb path. */
+function photoThumbSrc(photo) {
+  const full = photoSrc(photo);
+  if (!full) return '';
+  if (full.startsWith('data:') || full.startsWith('blob:') || full.startsWith('http')) return full;
+  // photos/foo/bar/IMG.jpg → photos/foo/bar/thumbs/IMG.jpg
+  const m = full.match(/^(photos\/.+\/)([^/]+)$/);
+  if (m) return `${m[1]}thumbs/${m[2]}`;
+  return full;
 }
 
 function getPhotos(j) {
