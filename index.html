@@ -84,12 +84,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   max-width:calc((100% - 24px) / 4);
   display:flex;align-items:stretch;box-sizing:border-box
 }
+.pin-day-step.is-compact{
+  flex-basis:calc((100% - 56px) / 8);
+  max-width:calc((100% - 56px) / 8)
+}
 .pin-day-step .pin-card{flex:1;width:100%}
 @media(max-width:900px){
   .pin-day-step{flex-basis:calc((100% - 8px) / 2);max-width:calc((100% - 8px) / 2)}
+  .pin-day-step.is-compact{flex-basis:calc((100% - 24px) / 4);max-width:calc((100% - 24px) / 4)}
 }
 @media(max-width:520px){
   .pin-day-step{flex-basis:100%;max-width:100%}
+  .pin-day-step.is-compact{flex-basis:calc((100% - 8px) / 2);max-width:calc((100% - 8px) / 2)}
 }
 .pin-card{
   background:var(--card);border:.5px solid var(--border);border-radius:10px;
@@ -113,17 +119,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .pin-card-name{
   font-family:'Playfair Display',serif;font-size:.92rem;font-weight:600;line-height:1.2
 }
-.pin-card-sub{
-  font-size:.65rem;color:var(--muted);margin-top:1px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+.pin-card-park .pin-card-name{
+  font-size:1.28rem;font-weight:700;line-height:1.15;letter-spacing:-.01em
 }
 .pin-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;align-items:center}
-.pin-jump-btn{
-  font-family:'DM Sans',sans-serif;font-size:.62rem;font-weight:600;
-  padding:2px 7px;border-radius:5px;border:.5px solid var(--border);
-  background:var(--bg);color:var(--text);cursor:pointer
-}
-.pin-jump-btn:hover{border-color:var(--coral);color:var(--coral)}
 .pin-photos{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));
   gap:3px;margin-top:2px
@@ -1149,6 +1148,15 @@ const PIN_STATIC_PHOTOS = {
     { url:'photos/locations/hays/IMG_0064.JPG', caption:'' },
     { url:'photos/locations/hays/IMG_0067.JPG', caption:'' },
   ],
+  'sleep-denver': [
+    { url:'photos/locations/denver/IMG_2090.JPG', caption:'' },
+    { url:'photos/locations/denver/IMG_2091.JPG', caption:'' },
+    { url:'photos/locations/denver/IMG_2093.JPG', caption:'' },
+    { url:'photos/locations/denver/IMG_2095.JPG', caption:'' },
+    { url:'photos/locations/denver/IMG_2096.JPG', caption:'' },
+    { url:'photos/locations/denver/IMG_2100.JPG', caption:'' },
+    { url:'photos/locations/denver/IMG_2106.jpeg', caption:'' },
+  ],
   'stop-stlouis': [
     { url:'photos/locations/st-louis/IMG_2067.JPG', caption:'' },
     { url:'photos/locations/st-louis/IMG_2069.JPG', caption:'' },
@@ -1236,43 +1244,67 @@ const PIN_STATIC_PHOTOS = {
     { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0138.JPG', caption:'' },
     { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0139.JPG', caption:'' },
     { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_0140.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_2135.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_2136.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_2139.JPG', caption:'' },
+    { url:'photos/locations/rocky-mountains/cub-lake-bear-lake/IMG_2140.JPG', caption:'' },
   ],
   arches: [
-    { url:'photos/locations/arches/IMG_0142.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0144.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0145.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0148.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0150.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0152.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0153.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0154.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0159.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0160.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0162.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0165.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0167.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0170.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0171.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0174.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0175.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0176.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0177.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0178.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0179.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0182.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0184.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0185.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0186.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0187.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0188.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0189.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0190.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0193.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0195.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0199.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0200.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0201.JPG', caption:'' },
-    { url:'photos/locations/arches/IMG_0203.JPG', caption:'' },
+    { url:'photos/locations/arches/IMG_2166.JPG', caption:'' },
+  ],
+  'hike-delicate-arch': [
+    { url:'photos/locations/arches/delicate-arch/IMG_0142.JPG', caption:'' },
+    { url:'photos/locations/arches/delicate-arch/IMG_0144.JPG', caption:'' },
+    { url:'photos/locations/arches/delicate-arch/IMG_0145.JPG', caption:'' },
+    { url:'photos/locations/arches/delicate-arch/IMG_0148.JPG', caption:'' },
+    { url:'photos/locations/arches/delicate-arch/IMG_0150.JPG', caption:'' },
+    { url:'photos/locations/arches/delicate-arch/IMG_0152.JPG', caption:'' },
+    { url:'photos/locations/arches/delicate-arch/IMG_0153.JPG', caption:'' },
+    { url:'photos/locations/arches/delicate-arch/IMG_2175.JPG', caption:'' },
+    { url:'photos/locations/arches/delicate-arch/IMG_2182.JPG', caption:'' },
+    { url:'photos/locations/arches/delicate-arch/IMG_2184.JPG', caption:'' },
+  ],
+  'hike-double-o-arch': [
+    { url:'photos/locations/arches/double-o-arch/IMG_0154.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0159.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0160.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0162.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0165.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0167.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0170.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0171.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0174.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0175.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0176.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0177.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0178.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0179.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0182.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0184.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0185.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0186.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0187.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0188.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0189.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0190.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0193.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0195.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0199.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0200.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0201.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_0203.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_2208.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_2212.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_2216.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_2217.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_2222.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_2227.JPG', caption:'' },
+    { url:'photos/locations/arches/double-o-arch/IMG_2228.JPG', caption:'' },
+  ],
+  'hike-mill-creek': [
+    { url:'photos/locations/arches/mill-creek/IMG_2237.JPG', caption:'' },
+    { url:'photos/locations/arches/mill-creek/IMG_2238.JPG', caption:'' },
+    { url:'photos/locations/arches/mill-creek/IMG_2239.jpg', caption:'' },
   ],
   // Hub substops — drop files into the folders, then list URLs here
   'sub-world-cup': [
@@ -1285,7 +1317,7 @@ const SLEEP_PINS = [
   {id:'sleep-columbia', name:'Columbia overnight', lat:38.9517, lng:-92.3341, type:'sleep', date:'2026-07-15', note:'Night 2 lodging'},
   {id:'sleep-hays', name:'Hays overnight', lat:38.8792, lng:-99.3268, type:'sleep', date:'2026-07-16', note:'Night 3 lodging'},
   {id:'sleep-denver', name:'Denver overnight', lat:39.7392, lng:-104.9903, type:'sleep', date:'2026-07-17', note:'Hotel near RiNo or downtown'},
-  {id:'sleep-moraine', name:'Moraine Park Campground', lat:40.3565, lng:-105.6070, type:'sleep', date:'2026-07-19', seq:9, note:'RMNP campground · check in after World Cup'},
+  {id:'sleep-moraine', name:'Moraine Park Campground', lat:40.3565, lng:-105.6070, type:'sleep', date:'2026-07-19', seq:7, note:'RMNP campground · check in after World Cup'},
   {id:'sleep-saddle', name:'Saddle & Surrey Motel', lat:40.3616, lng:-105.5085, type:'sleep', date:'2026-07-20', note:'1341 S St Vrain Ave, Estes Park'},
   {id:'sleep-river-canyon', name:'River Canyon Lodge', lat:38.5748, lng:-109.5505, type:'sleep', date:'2026-07-21', note:'Moab base camp · 3 nights'},
   {id:'sleep-mather', name:'Mather Campground', lat:36.0492, lng:-112.1215, type:'sleep', date:'2026-07-24', note:'Grand Canyon South Rim'},
@@ -1306,7 +1338,12 @@ const BASE = [
       {id:'hike-cub-bear', name:'Cub Lake Trailhead → Bear Lake', kind:'hike', distanceMi:7, elevGainFt:2146, note:'Jul 20 · then hung at Bear Lake until ~4'},
     ]},
   {id:'moab',        name:'Moab, UT',                      lat:38.5733,  lng:-109.5498, type:'city',        date:'2026-07-21', miles:350, note:'Base camp for Utah parks'},
-  {id:'arches',      name:'Arches National Park, UT',      lat:38.7331,  lng:-109.5925, type:'park',        date:'2026-07-22', miles:15,  note:'Delicate Arch + Devils Garden'},
+  {id:'arches',      name:'Arches National Park, UT',      lat:38.7331,  lng:-109.5925, type:'park',        date:'2026-07-22', miles:15,  note:'Delicate Arch, Double O Arch, Mill Creek',
+    substops:[
+      {id:'hike-delicate-arch', name:'Delicate Arch Trail', kind:'hike', distanceMi:2.89, elevGainFt:617, note:'Jul 22 morning · 1h 4m'},
+      {id:'hike-double-o-arch', name:'Double O Arch Trail', kind:'hike', distanceMi:4.38, elevGainFt:607, note:'Jul 22 afternoon · 1h 46m · Devils Garden'},
+      {id:'hike-mill-creek', name:'Mill Creek Trail', kind:'hike', distanceMi:1.75, elevGainFt:75, note:'Jul 22 afternoon · 40m'},
+    ]},
   {id:'canyonlands', name:'Canyonlands National Park, UT', lat:38.2505,  lng:-109.8208, type:'park',        date:'2026-07-23', miles:25,  note:'Mesa Arch sunrise + Dead Horse Point'},
   {id:'grandcanyon', name:'Grand Canyon, AZ',              lat:36.0544,  lng:-112.1401, type:'park',        date:'2026-07-24', miles:265, note:'South Rim — Mather Campground'},
   {id:'zion',        name:'Zion National Park, UT',        lat:37.2982,  lng:-113.0263, type:'park',        date:'2026-07-26', miles:165, note:'Watchman Campground, Angels Landing + Narrows'},
@@ -1324,7 +1361,7 @@ const SCHED = [
   {date:'2026-07-19',type:'drive',    title:'Denver → Moraine Park',         detail:'Bonfire, World Cup, camp, Basin Loop', miles:80,  sid:'denver'},
   {date:'2026-07-20',type:'park',     title:'Rocky Mountain NP',            detail:'Cub Lake → Bear Lake, chill, Saddle & Surrey', miles:0,   sid:'rmnp'},
   {date:'2026-07-21',type:'drive',    title:'Estes Park → Moab',            detail:'I-70 through Colorado, arrive Moab evening',         miles:350, sid:'rmnp'},
-  {date:'2026-07-22',type:'park',     title:'Arches National Park',           detail:'Delicate Arch, Devils Garden, Landscape Arch',       miles:15,  sid:'arches'},
+  {date:'2026-07-22',type:'park',     title:'Arches National Park',           detail:'Delicate Arch, Double O Arch, Mill Creek',           miles:15,  sid:'arches'},
   {date:'2026-07-23',type:'park',     title:'Canyonlands + Dead Horse Point', detail:'Mesa Arch sunrise, Island in the Sky',               miles:25,  sid:'canyonlands'},
   {date:'2026-07-24',type:'drive',    title:'Moab → Grand Canyon',            detail:'Drive south through Navajo Nation to the South Rim', miles:265, sid:'moab'},
   {date:'2026-07-25',type:'park',     title:'Grand Canyon Day 2',             detail:'Rim Trail, Desert View Watchtower, Yavapai sunset',  miles:0,   sid:'grandcanyon'},
@@ -1437,9 +1474,10 @@ const DAILY_PLANS = {
     title:'Arches National Park',
     sleep:{place:'River Canyon Lodge, Moab, UT',note:'Same lodge — night 2 of 3; checkout July 24 by 11:00 AM',continues:true},
     blocks:[
-      {type:'explore',start:'5:30 AM',end:'10:30 AM',label:'Sunrise hikes (beat the heat)',ideas:['Delicate Arch — 3 mi, start before 7am','Landscape Arch — 1.9 mi, longest arch in North America','Fiery Furnace viewpoint at golden hour']},
+      {type:'explore',start:'5:30 AM',end:'10:30 AM',label:'Delicate Arch Trail',detail:'2.89 mi · 617 ft · 1h 4m',ideas:['Morning start to beat the heat']},
       {type:'rest',start:'11:00 AM',end:'3:00 PM',label:'Midday heat break',detail:'July: 100–108°F — stay in AC, hydrate',ideas:['Moab coffee shop or pool','3+ liters water for the afternoon']},
-      {type:'explore',start:'4:00 PM',end:'7:30 PM',label:'Late-afternoon hike',ideas:['Devils Garden Trail — 7.8 mi loop, most arches in one hike','Lions Park — cool off in the Colorado River']},
+      {type:'explore',start:'4:00 PM',end:'6:00 PM',label:'Double O Arch Trail',detail:'4.38 mi · 607 ft · 1h 46m · Devils Garden'},
+      {type:'explore',start:'6:15 PM',end:'7:00 PM',label:'Mill Creek Trail',detail:'1.75 mi · 75 ft · 40m'},
       {type:'rest',start:'8:00 PM',end:'9:30 PM',label:'Early night'}
     ]
   },
@@ -1667,10 +1705,9 @@ const ITINERARY = [
     },
     {label:'Day 9', from:'Moab, UT', to:'Arches National Park', drive:'15 min · 5 mi', date:'2026-07-22',
       activities:[
-        {icon:'🥾', text:'Delicate Arch — 3 mi round trip, start before 7am in July, iconic reward'},
-        {icon:'🥾', text:'Devils Garden Trail — 7.8 mi loop, passes the most arches of any single hike'},
-        {icon:'🥾', text:'Landscape Arch — 1.9 mi, the longest natural arch in North America'},
-        {icon:'🌄', text:'Fiery Furnace viewpoint at golden hour'},
+        {icon:'🥾', text:'Delicate Arch Trail — 2.89 mi, 617 ft, morning'},
+        {icon:'🥾', text:'Double O Arch Trail — 4.38 mi, 607 ft, Devils Garden afternoon'},
+        {icon:'🥾', text:'Mill Creek Trail — 1.75 mi, 75 ft, easy evening cool-down'},
       ],
       stay:'River Canyon Lodge, Moab, UT', heat:'⚠️ Park closes to new entries when temps are extreme. Arrive at opening (6am). Bring 3+ liters of water.',
       tip:null
@@ -1773,6 +1810,20 @@ function parkPinsFromBase() {
     .map(s => ({ ...s }));
 }
 
+function pinTypeOrder(type) {
+  const order = { origin:0, hub:1, stop:2, park:3, eat:4, city:5, rest:6, sleep:8, destination:9 };
+  return order[type] ?? 6;
+}
+
+function comparePinsChrono(a, b) {
+  const d = a.date.localeCompare(b.date);
+  if (d) return d;
+  // Optional seq overrides type order within a day (sleep last by default)
+  const sa = a.seq != null ? a.seq : pinTypeOrder(a.type);
+  const sb = b.seq != null ? b.seq : pinTypeOrder(b.type);
+  return sa - sb;
+}
+
 function allMapPins() {
   const pins = [
     ...parkPinsFromBase(),
@@ -1785,15 +1836,20 @@ function allMapPins() {
       type: s.type === 'park' ? 'park' : s.type === 'rest' ? 'rest' : 'sleep',
     })),
   ];
-  return pins.sort((a, b) => {
-    const d = a.date.localeCompare(b.date);
-    if (d) return d;
-    // Optional seq overrides type order within a day (sleep still last by default)
-    const order = { origin:0, hub:1, stop:2, park:3, eat:4, city:5, rest:6, sleep:8, destination:9 };
-    const sa = a.seq != null ? a.seq : (order[a.type] ?? 6);
-    const sb = b.seq != null ? b.seq : (order[b.type] ?? 6);
-    return sa - sb;
-  });
+  return pins.sort(comparePinsChrono);
+}
+
+/** Feed sections: one lodging for the whole block → sleep last; multiple lodgings → chronological. */
+function sortSectionPinsForFeed(pins) {
+  const sleeps = pins.filter(p => p.type === 'sleep');
+  const places = new Set(sleeps.map(p => (p.name || p.id).toLowerCase()));
+  if (places.size <= 1) {
+    return [
+      ...pins.filter(p => p.type !== 'sleep').sort(comparePinsChrono),
+      ...sleeps.sort(comparePinsChrono),
+    ];
+  }
+  return [...pins].sort(comparePinsChrono);
 }
 
 function pinById(id) {
@@ -2335,17 +2391,12 @@ function substopCardHtml(sub, parent) {
     </div>`;
   }
 
-  const bits = [];
-  if (sub.kind === 'hike') bits.push('Hike');
-  if (photos.length) bits.push(`${photos.length} photo${photos.length > 1 ? 's' : ''}`);
-  if (hasReviews) bits.push(`${pin.reviews.length} review${pin.reviews.length > 1 ? 's' : ''}`);
-
   return `<div class="pin-substop" id="pin-${sub.id}">
     <div class="pin-substop-hdr">
       <div class="pin-card-dot" style="background:${stopColor(sub.kind === 'hike' ? 'park' : 'stop')}"></div>
       <div class="pin-card-meta">
         <div class="pin-substop-name">${escapeHtml(sub.name)}</div>
-        <div class="pin-substop-note">${escapeHtml(sub.note || '')}${bits.length ? (sub.note ? ' · ' : '') + bits.join(' · ') : ''}</div>
+        ${sub.note ? `<div class="pin-substop-note">${escapeHtml(sub.note)}</div>` : ''}
       </div>
       ${sub.kind === 'hike' ? '<span class="type-badge tb-park">Hike</span>' : ''}
     </div>
@@ -2362,30 +2413,16 @@ function pinCardHtml(pin) {
   const active = selectedStopId === pin.id ? ' pin-card-active' : '';
   const substops = pin.substops || [];
   const hasSubstops = substops.length > 0;
+  const parkCls = pin.type === 'park' ? ' pin-card-park' : '';
+  const badge = `<span class="type-badge tb-${pin.type === 'hub' ? 'hub' : pin.type}">${escapeHtml(pin.type === 'hub' ? 'Hub' : typeLbl)}</span>`;
 
   if (pin.type === 'hub' || hasSubstops) {
-    const onMap = pin.lat != null && pin.lng != null && !pin.pending
-      ? `<button type="button" class="pin-jump-btn" onclick="event.stopPropagation(); focusPinOnMap('${pin.id}')">Map</button>`
-      : '';
-    const badge = pin.type === 'hub'
-      ? '<span class="type-badge tb-hub">Hub</span>'
-      : `<span class="type-badge tb-${pin.type}">${escapeHtml(typeLbl)}</span>`;
-    const hikeCount = substops.filter(s => s.kind === 'hike').length;
-    const subLabel = hikeCount
-      ? `${hikeCount} hike${hikeCount === 1 ? '' : 's'}${hasPhotos ? ` · ${photos.length} photo${photos.length > 1 ? 's' : ''}` : ''}`
-      : (hasSubstops
-        ? `${substops.length} stop${substops.length === 1 ? '' : 's'}${hasPhotos ? ` · ${photos.length} photo${photos.length > 1 ? 's' : ''}` : ''}`
-        : (hasPhotos ? `${photos.length} photo${photos.length > 1 ? 's' : ''}` : ''));
-    return `<article class="pin-card pin-card-hub${active}" id="pin-${pin.id}">
+    return `<article class="pin-card pin-card-hub${parkCls}${active}" id="pin-${pin.id}">
       <div class="pin-hub-hdr" onclick="selectPin('${pin.id}', { fromMap: false })">
         <div class="pin-card-dot" style="background:${stopColor(pin.type)}"></div>
         <div class="pin-card-meta">
           <div class="pin-card-name">${escapeHtml(pin.name)}</div>
-          <div class="pin-card-sub">${escapeHtml(subLabel)}</div>
-          <div class="pin-card-actions">
-            ${badge}
-            ${onMap}
-          </div>
+          <div class="pin-card-actions">${badge}</div>
         </div>
       </div>
       ${pin.note ? `<div class="pin-substop-note" style="margin:4px 0 0 21px">${escapeHtml(pin.note)}</div>` : ''}
@@ -2396,30 +2433,22 @@ function pinCardHtml(pin) {
 
   // No photos → collapsed one-line row (reviews alone don't expand)
   if (!hasPhotos) {
-    return `<article class="pin-card pin-card-slim${active}" id="pin-${pin.id}"
+    return `<article class="pin-card pin-card-slim${parkCls}${active}" id="pin-${pin.id}"
       onclick="selectPin('${pin.id}', { fromMap: false })">
       <div class="pin-card-dot" style="background:${stopColor(pin.type)}"></div>
       <div class="pin-card-meta">
         <div class="pin-card-name">${escapeHtml(pin.name)}</div>
-        <div class="pin-card-sub">${escapeHtml(typeLbl)}</div>
       </div>
-      <span class="type-badge tb-${pin.type}">${escapeHtml(typeLbl)}</span>
+      ${badge}
     </article>`;
   }
 
-  const onMap = pin.lat != null && pin.lng != null && !pin.pending
-    ? `<button type="button" class="pin-jump-btn" onclick="event.stopPropagation(); focusPinOnMap('${pin.id}')">Map</button>`
-    : '';
-  return `<article class="pin-card${active}" id="pin-${pin.id}">
+  return `<article class="pin-card${parkCls}${active}" id="pin-${pin.id}">
     <div class="pin-card-hdr" onclick="selectPin('${pin.id}', { fromMap: false })">
       <div class="pin-card-dot" style="background:${stopColor(pin.type)}"></div>
       <div class="pin-card-meta">
         <div class="pin-card-name">${escapeHtml(pin.name)}</div>
-        <div class="pin-card-sub">${escapeHtml(typeLbl)} · ${photos.length} photo${photos.length > 1 ? 's' : ''}</div>
-        <div class="pin-card-actions">
-          <span class="type-badge tb-${pin.type}">${escapeHtml(typeLbl)}</span>
-          ${onMap}
-        </div>
+        <div class="pin-card-actions">${badge}</div>
       </div>
     </div>
     ${pinPhotosHtml(pin)}
@@ -2448,7 +2477,8 @@ function renderPinFeed() {
     });
   });
 
-  el.innerHTML = bySection.map(({ section, pins: sectionPins }) => {
+  el.innerHTML = bySection.map(({ section, pins: rawPins }) => {
+    const sectionPins = sortSectionPinsForFeed(rawPins);
     const n = sectionPins.length;
     const title = fmtFeedSectionTitle(section);
     return `<section class="pin-day" aria-label="${escapeHtml(title)}">
@@ -2457,7 +2487,10 @@ function renderPinFeed() {
         <span class="pin-day-meta">${n} pin${n === 1 ? '' : 's'}</span>
       </div>
       <div class="pin-day-grid">
-        ${sectionPins.map(pin => `<div class="pin-day-step">${pinCardHtml(pin)}</div>`).join('')}
+        ${sectionPins.map(pin => {
+          const compact = pin.type === 'sleep' && collectPinPhotos(pin).length === 0;
+          return `<div class="pin-day-step${compact ? ' is-compact' : ''}">${pinCardHtml(pin)}</div>`;
+        }).join('')}
       </div>
     </section>`;
   }).join('');
@@ -2576,17 +2609,6 @@ document.addEventListener('click', (e) => {
   const gal = document.getElementById('gallery');
   if (gal && gal.classList.contains('open') && e.target === gal) closeGallery();
 });
-
-function focusPinOnMap(id) {
-  const pin = pinById(id);
-  if (!pin || pin.lat == null || pin.lng == null || !map) return;
-  switchTab('map');
-  setTimeout(() => {
-    map.flyTo([pin.lat, pin.lng], 11, { duration: 0.9 });
-    if (markers[id]) markers[id].openPopup();
-    selectedStopId = id;
-  }, 80);
-}
 
 function renderStopsList() {
   renderPinFeed();
